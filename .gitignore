@@ -141,3 +141,6 @@ output/logs/*
 output/figures/*
 output/results/*
 output/paraview/*
+
+### Keep README.md ###
+!README.md
