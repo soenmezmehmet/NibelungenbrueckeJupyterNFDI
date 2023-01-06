@@ -1,0 +1,9 @@
+{
+    "generate_synthetic_data": false,
+    "generate_model": false,
+    "preprocess_data": false,
+    "run_inference": false,
+    "postprocess_results": false,
+    "generate_document": false,
+    "query_posterior_predictive": false
+}
