@@ -136,7 +136,7 @@ dmypy.json
 
 ### I/O files ###
 input/data/*
-input/model/*
+input/models/*
 output/logs/*
 output/figures/*
 output/results/*
