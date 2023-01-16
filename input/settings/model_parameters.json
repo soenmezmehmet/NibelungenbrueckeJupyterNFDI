@@ -15,7 +15,15 @@
         "wall_thickness": 0.4
     },
     "geometry": {
-        "cross_section_path": "path"
+        "cross_section_path": "input/models/cross_section",
+        "cross_section_format": ".geo_unrolled",
+        "length": 95.185,
+        "number_of_divisions": 31,
+        "interpolation": "parabolic",
+        "output_path": "input/models/geometry",
+        "output_format": ".geo_unrolled",
+        "extrude": "lines"
+
     },
     "mesh": {
         "output_path": "path"

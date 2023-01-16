@@ -34,26 +34,27 @@ def create_cross_section(parameters):
     wall_thickness=cs_parameters["wall_thickness"]
 
     # Define the points for the line profile
-    p01 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width -pilot_fly, 0, 0)
-    p03 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width, 0, 0)
-    p04 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width, -(pilot_top_height-pilot_bottom_height), 0)
-    p05 = gmsh.model.geo.addPoint(-gap_length/2 , -(pilot_top_height-pilot_bottom_height), 0)
-    p06 = gmsh.model.geo.addPoint(-gap_length/2 , 0, 0)
-    p12 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width +pilot_fly, 0, 0)
-    p10 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width, 0, 0)
-    p09 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width, -(pilot_top_height-pilot_bottom_height), 0)
-    p08 = gmsh.model.geo.addPoint(gap_length/2 , -(pilot_top_height-pilot_bottom_height), 0)
-    p07 = gmsh.model.geo.addPoint(gap_length/2 , 0, 0)
+    # TODO: Find better solution for the tags
+    p01 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width -pilot_fly, 0, 0, tag=1)
+    p03 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width, 0, 0, tag=3)
+    p04 = gmsh.model.geo.addPoint(-gap_length/2 - pilot_width, -(pilot_top_height-pilot_bottom_height), 0, tag=4)
+    p05 = gmsh.model.geo.addPoint(-gap_length/2 , -(pilot_top_height-pilot_bottom_height), 0, tag=5)
+    p06 = gmsh.model.geo.addPoint(-gap_length/2 , 0, 0, tag=6)
+    p12 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width +pilot_fly, 0, 0, tag=12)
+    p10 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width, 0, 0, tag=10)
+    p09 = gmsh.model.geo.addPoint(gap_length/2 + pilot_width, -(pilot_top_height-pilot_bottom_height), 0, tag=9)
+    p08 = gmsh.model.geo.addPoint(gap_length/2 , -(pilot_top_height-pilot_bottom_height), 0, tag=8)
+    p07 = gmsh.model.geo.addPoint(gap_length/2 , 0, 0, tag=7)
 
-    # Create the lines for the square
-    l1 = gmsh.model.geo.addLine(p01, p12)
-    l2 = gmsh.model.geo.addLine(p03, p04)
-    l3 = gmsh.model.geo.addLine(p04, p05)
-    l4 = gmsh.model.geo.addLine(p05, p06)
-    l5 = gmsh.model.geo.addLine(p06, p07)
-    l6 = gmsh.model.geo.addLine(p07, p08)
-    l7 = gmsh.model.geo.addLine(p08, p09)
-    l8 = gmsh.model.geo.addLine(p09, p10)
+    # Create the lines for the pilot
+    l1 = gmsh.model.geo.addLine(p01, p12, tag=1)
+    l2 = gmsh.model.geo.addLine(p03, p04, tag=2)
+    l3 = gmsh.model.geo.addLine(p04, p05, tag=3)
+    l4 = gmsh.model.geo.addLine(p05, p06, tag=4)
+    # l5 = gmsh.model.geo.addLine(p06, p07, tag=5)
+    l6 = gmsh.model.geo.addLine(p07, p08, tag=6)
+    l7 = gmsh.model.geo.addLine(p08, p09, tag=7)
+    l8 = gmsh.model.geo.addLine(p09, p10, tag=8)
 
     # Synchronize the model
     gmsh.model.geo.synchronize()
@@ -80,26 +81,26 @@ def create_cross_section(parameters):
     span_fly=cs_parameters["span_fly"]
 
     # Define the points for the line profile
-    p01 = gmsh.model.geo.addPoint(-gap_length/2 - span_width -span_fly, 0, 0)
-    p03 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, 0, 0)
-    p04 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, -(span_top_height-span_bottom_height), 0)
-    p05 = gmsh.model.geo.addPoint(-gap_length/2 , -(span_top_height-span_bottom_height), 0)
-    p06 = gmsh.model.geo.addPoint(-gap_length/2 , 0, 0)
-    p12 = gmsh.model.geo.addPoint(gap_length/2 + span_width +span_fly, 0, 0)
-    p10 = gmsh.model.geo.addPoint(gap_length/2 + span_width, 0, 0)
-    p09 = gmsh.model.geo.addPoint(gap_length/2 + span_width, -(span_top_height-span_bottom_height), 0)
-    p08 = gmsh.model.geo.addPoint(gap_length/2 , -(span_top_height-span_bottom_height), 0)
-    p07 = gmsh.model.geo.addPoint(gap_length/2 , 0, 0)
+    p01 = gmsh.model.geo.addPoint(-gap_length/2 - span_width -span_fly, 0, 0, tag=101)
+    p03 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, 0, 0, tag=103)
+    p04 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, -(span_top_height-span_bottom_height), 0, tag=104)
+    p05 = gmsh.model.geo.addPoint(-gap_length/2 , -(span_top_height-span_bottom_height), 0, tag=105)
+    p06 = gmsh.model.geo.addPoint(-gap_length/2 , 0, 0, tag=106)
+    p12 = gmsh.model.geo.addPoint(gap_length/2 + span_width +span_fly, 0, 0, tag=112)
+    p10 = gmsh.model.geo.addPoint(gap_length/2 + span_width, 0, 0, tag=110)
+    p09 = gmsh.model.geo.addPoint(gap_length/2 + span_width, -(span_top_height-span_bottom_height), 0, tag=109)
+    p08 = gmsh.model.geo.addPoint(gap_length/2 , -(span_top_height-span_bottom_height), 0, tag=108)
+    p07 = gmsh.model.geo.addPoint(gap_length/2 , 0, 0, tag=107)
 
-    # Create the lines for the square
-    l1 = gmsh.model.geo.addLine(p01, p10)
-    l2 = gmsh.model.geo.addLine(p03, p04)
-    l3 = gmsh.model.geo.addLine(p04, p05)
-    l4 = gmsh.model.geo.addLine(p05, p06)
-    l5 = gmsh.model.geo.addLine(p06, p07)
-    l6 = gmsh.model.geo.addLine(p07, p08)
-    l7 = gmsh.model.geo.addLine(p08, p09)
-    l8 = gmsh.model.geo.addLine(p09, p10)
+    # Create the lines for the span
+    l1 = gmsh.model.geo.addLine(p01, p12, tag=101)
+    l2 = gmsh.model.geo.addLine(p03, p04, tag=102)
+    l3 = gmsh.model.geo.addLine(p04, p05, tag=103)
+    l4 = gmsh.model.geo.addLine(p05, p06, tag=104)
+    # l5 = gmsh.model.geo.addLine(p06, p07, tag=105)
+    l6 = gmsh.model.geo.addLine(p07, p08, tag=106)
+    l7 = gmsh.model.geo.addLine(p08, p09, tag=107)
+    l8 = gmsh.model.geo.addLine(p09, p10, tag=108)
 
     # Synchronize the model
     gmsh.model.geo.synchronize()
