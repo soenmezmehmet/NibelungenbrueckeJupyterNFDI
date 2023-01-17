@@ -67,37 +67,64 @@ def create_geometry(parameters):
     interpolation_coords_y = sampler(geo_parameters["number_of_divisions"], geo_parameters["length"] ,geo_parameters["interpolation"])
     interpolation_coords_z = np.linspace(0,geo_parameters["length"],geo_parameters["number_of_divisions"])
 
-    ## Extrude sections
-    if geo_parameters["extrude"] == "lines":
-        for line_span, line_pilot in zip(lines_span, lines_pilot):
+    interpolation_coordinates = (interpolation_coords_x, interpolation_coords_y, interpolation_coords_z)
+   
+    dx = {}
+    dy = {}
+    dz = {}
 
-            # Identify points
-            # for point in line
-            #     go to interp coords
-            #     extrude point into a line
-            #     add new point to list of new points
-            # join the new points into a line
-            # add the line to list of lines to be extruded
-            
-            lines = []
-            start_point_span = gmsh.model.getBoundary(dimTags=line_span)[0]
-            x_span, y_span, z_span = gmsh.model.getValue(start_point_span[0],start_point_span[1],[])
-            start_point_pilot = gmsh.model.getBoundary(line_pilot)[0]
-            x_pilot, y_pilot,z_pilot = gmsh.model.getValue(start_point_pilot[0],start_point_pilot[1],[])
-            lines += [line_pilot] 
-
-            # Extrude arrays
-            dx = [(x_span-x_pilot)*int_coord for int_coord in np.diff(interpolation_coords_x)]
-            dy = [(y_span-y_pilot)*int_coord for int_coord in np.diff(interpolation_coords_y)]
-            dz = [int_coord for int_coord in np.diff(interpolation_coords_z)]
-
-            for dx_i, dy_i, dz_i in zip(dx, dy, dz):
-                newDimTags = gmsh.model.geo.extrude(lines[-1],dx_i,dy_i,dz_i)
-                lines += [newDimTags[0]]
-                gmsh.model.geo.synchronize()
+    # Calculate the director vector for each point
+    for point_pilot, point_span, points_id in zip(points_pilot, points_span, range(len(points_pilot))):
+        dx[points_id], dy[points_id], dz[points_id] = _calculate_extrude_vector(point_pilot, point_span, interpolation_coordinates)
     
+    # Delete span section to prevent duplicatos or inconsistent behaviour
+    gmsh.model.geo.remove(points_span)
+    gmsh.model.geo.remove(lines_span)
+    gmsh.model.geo.synchronize()
+
+    old_cross_section_points = points_pilot
+    old_cross_section_lines = lines_pilot
+
+    grouped_points = {}
+    grouped_cs_lines = {}
+    grouped_z_lines = {}
+    # Iterate over sections
+    for section in range(len(dz)):
+        new_cross_section_points = []
+        # new_z_lines = []
+        new_cross_section_lines = []
+
+        # Extrude the cross-section to the new points
+        for point, point_id in zip(old_cross_section_points, dz.keys()):
+            newDimTags = gmsh.model.geo.extrude(point,dx[point_id][section],dy[point_id][section],dz[point_id][section])
+            # new_z_lines += [newDimTags[1]]
+            new_cross_section_points += [newDimTags[0]]
+            grouped_points[point[1]] = newDimTags[0][1]
+            grouped_z_lines[point[1]] = newDimTags[1][1]
+        
+        # Create the wireframe of the new cross-section and update
+        for start, end  in [gmsh.model.getBoundary(line) for line in old_cross_section_lines]:
+            cs_line= [(1,gmsh.model.geo.addLine(grouped_points[start[1]],grouped_points[end[1]]))]
+            new_cross_section_lines += cs_line
+            grouped_cs_lines[grouped_points[start[1]]] = cs_line[0][1]
+
+        # Create the closed loops and surfaces of the section
+        for old_cs_line, new_cs_line in zip(old_cross_section_lines, new_cross_section_lines):
+            start_old, end_old = gmsh.model.getBoundary(old_cs_line)
+            curve_loop = gmsh.model.geo.addCurveLoop([-old_cs_line[1],grouped_z_lines[start_old[1]],new_cs_line[1],-grouped_z_lines[end_old[1]]])
+            gmsh.model.geo.addPlaneSurface([curve_loop])
+        
+        # Update and synchronize
+        old_cross_section_lines = new_cross_section_lines
+        old_cross_section_points = new_cross_section_points
+        gmsh.model.geo.synchronize()
+
     if geo_parameters["extrude"] == "surfaces":
         raise Exception("Extruding surfaces not implemented")
+
+    # Remove duplicates
+    gmsh.model.geo.removeAllDuplicates()
+    gmsh.model.geo.synchronize()
 
     # Save the model
     gmsh.write(geo_parameters["output_path"]+geo_parameters["output_format"])
@@ -119,6 +146,19 @@ def _get_default_parameters():
     }
 
     return default_parameters
+
+def _calculate_extrude_vector(point_pilot, point_span, interpolation_coordinates):
+
+    # Retrieve span and pilot coords
+    x_span, y_span, z_span = gmsh.model.getValue(point_span[0],point_span[1],[])
+    x_pilot, y_pilot,z_pilot = gmsh.model.getValue(point_pilot[0],point_pilot[1],[])
+
+    # Calculate extrusion director vectors
+    dx = [(x_span-x_pilot)*int_coord for int_coord in np.diff(interpolation_coordinates[0])]
+    dy = [(y_span-y_pilot)*int_coord for int_coord in np.diff(interpolation_coordinates[1])]
+    dz = [int_coord for int_coord in np.diff(interpolation_coordinates[2])]
+
+    return dx, dy, dz
 
 def _check_valid_formats(extension):
 
