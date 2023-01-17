@@ -89,15 +89,13 @@ def create_geometry(parameters):
     grouped_cs_lines = {}
     grouped_z_lines = {}
     # Iterate over sections
-    for section in range(len(dz)):
+    for section in range(len(dz[0])):
         new_cross_section_points = []
-        # new_z_lines = []
         new_cross_section_lines = []
 
         # Extrude the cross-section to the new points
         for point, point_id in zip(old_cross_section_points, dz.keys()):
             newDimTags = gmsh.model.geo.extrude(point,dx[point_id][section],dy[point_id][section],dz[point_id][section])
-            # new_z_lines += [newDimTags[1]]
             new_cross_section_points += [newDimTags[0]]
             grouped_points[point[1]] = newDimTags[0][1]
             grouped_z_lines[point[1]] = newDimTags[1][1]
