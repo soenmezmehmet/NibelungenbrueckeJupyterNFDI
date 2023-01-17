@@ -28,16 +28,18 @@ def task_generate_geometry():
     return {'actions': [(create_geometry,[],{'parameters':model_parameters["geometry"]})],
             'file_dep':[model_parameters["geometry"]["cross_section_path"]+"_span"+model_parameters["geometry"]["cross_section_format"],
                         model_parameters["geometry"]["cross_section_path"]+"_pilot"+model_parameters["geometry"]["cross_section_format"]],
-            'targets': [model_parameters["geometry"]["output_path"]],
+            'targets': [model_parameters["geometry"]["output_path"]+model_parameters["geometry"]["output_format"]],
             'uptodate': [True]}
 
 def task_generate_mesh():
 
     return {'actions': [(create_mesh,[],{'parameters':model_parameters["mesh"]})],
-            'targets': [model_parameters["mesh"]["output_path"]],
+            'file_dep': [model_parameters["geometry"]["output_path"]+model_parameters["geometry"]["output_format"]],
+            'targets': [model_parameters["mesh"]["output_path"]+".msh"],
             'uptodate': [True]}
 
 if __name__ == "__main__":
 
     create_cross_section(model_parameters["cross_section"])
     create_geometry(model_parameters["geometry"])
+    create_mesh(model_parameters["mesh"])
