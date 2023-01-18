@@ -1,17 +1,11 @@
-import json
-import numpy as np
 import ufl
 
 from petsc4py.PETSc import ScalarType
-from mpi4py import MPI
 
-from dolfinx import fem, mesh
+from dolfinx import fem
 
 from generator_model_base_class import GeneratorModel
 from utilities.boundary_condition_factory import boundary_condition_factory
-from utilities.sensors import *
-from utilities.loaders import load_sensors
-from utilities.offloaders import offload_sensors
 
 class DisplacementGenerator(GeneratorModel):
     ''' Generates the displacements at the sensors for a given load configuration.'''
@@ -31,12 +25,12 @@ class DisplacementGenerator(GeneratorModel):
         # Load boundary conditions
         self.LoadBCs()
 
-        T = fem.Constant(self.mesh, ScalarType((0, 0, 0)))
+        T = fem.Constant(self.mesh, ScalarType((0, 0, self.model_parameters["tension_z"])))
         ds = ufl.Measure("ds", domain=self.mesh)
 
         u = ufl.TrialFunction(self.V)
         v = ufl.TestFunction(self.V)
-        f = fem.Constant(self.mesh, ScalarType((0, 0, -self.material_parameters["rho"]*self.model_parameters["g"])))
+        f = fem.Constant(self.mesh, ScalarType((0, -self.material_parameters["rho"]*self.model_parameters["g"],0)))
         self.a = ufl.inner(self.sigma(u), self.epsilon(v)) * ufl.dx
         self.L = ufl.dot(f, v) * ufl.dx + ufl.dot(T, v) * ds
 
@@ -55,7 +49,7 @@ class DisplacementGenerator(GeneratorModel):
 
         bcs = []
         for bc_model in self.model_parameters["boundary_conditions"]:
-            bc = boundary_condition_factory(self.mesh,self.V, bc_model)
+            bc = boundary_condition_factory(self.mesh,bc_model["model"],self.V, bc_model)
             bcs.append(bc)
 
         self.bcs = bcs
@@ -68,10 +62,18 @@ class DisplacementGenerator(GeneratorModel):
 
     def _get_default_parameters():
         default_parameters = {
-            "model_path": "input/models/mesh.msh",
-            "output_path": "data",
-            "output_format": ".h5",
-            "generation_models_list": [None],
+            "material_parameters":{
+                "rho": 1.0,
+                "g": 100,
+                "mu": 1,
+                "lambda": 1.25
+            },
+            "tension_z": 0.0,
+            "boundary_conditions": [{
+                "model":"clamped_boundary",
+                "side_coord": 0.0,
+                "coord": 0
+            }]
         }
 
         return default_parameters

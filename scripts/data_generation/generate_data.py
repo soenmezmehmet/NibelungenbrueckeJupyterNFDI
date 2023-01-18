@@ -30,8 +30,8 @@ def generate_data(parameters):
         generator_model = generator_model_factory(data_parameters["model_path"],
                                                   model_parameters["generator_path"], 
                                                   model_parameters["sensor_positions_path"],
-                                                  model_parameters["model_parameters"])
-
+                                                  model_parameters["model_parameters"],
+                                                  data_parameters["output_parameters"])
         generator_model.Generate()
 
 def _get_default_parameters():

@@ -17,4 +17,4 @@ def offload_sensors(sensor_list: list, output_path: str, output_format: str):
                 group.create_dataset("Data", data=sensor.data)
                 group.create_dataset("Max", data=sensor.max)
     else:
-        raise NotImplementedError
+        raise NotImplementedError()

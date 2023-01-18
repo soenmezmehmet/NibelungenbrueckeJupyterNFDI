@@ -4,7 +4,7 @@ import dolfinx
 from mpi4py import MPI
 
 from utilities.checks import assert_path_exists
-from utilities.loaders import load_sensor, load_sensors
+from utilities.loaders import load_sensors
 from utilities.offloaders import offload_sensors
 class GeneratorModel:
     ''' Base class for a generator of synthetic data from a model.'''
