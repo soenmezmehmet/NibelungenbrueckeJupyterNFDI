@@ -1,0 +1,13 @@
+{
+    "model_path": "input/models/mesh.msh",
+    "output_path": "data",
+    "output_format": ".h5",
+    "generation_models_list": [{
+        "generator_path": "displacement_generator.py",
+        "sensor_positions_path": "input/sensors/sensors_displacements",
+        "model_parameters": {
+            
+        }
+    }
+    ]
+}

@@ -26,8 +26,9 @@ def generate_data(parameters):
         raise Exception("[Synthetic_data] Error: Generation model not define.")
 
     # Generate several sets of data iteratively
-    for model_parameters in data_parameters["generation_models"]:
-        generator_model = generator_model_factory(model_parameters["generator_path"], 
+    for model_parameters in data_parameters["generation_models_list"]:
+        generator_model = generator_model_factory(data_parameters["model_path"],
+                                                  model_parameters["generator_path"], 
                                                   model_parameters["sensor_positions_path"],
                                                   model_parameters["model_parameters"])
 

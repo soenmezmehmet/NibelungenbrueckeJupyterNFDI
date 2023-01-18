@@ -10,8 +10,6 @@ sys.path.append(root_path)
 
 from scripts.data_generation.generate_data import generate_data
 
-
-
 def task_generate_synthetic_data():
     data_parameters_path = "input/settings/generate_data_parameters.json"
     with open(data_parameters_path, 'r') as f:
