@@ -4,10 +4,12 @@ import dolfinx
 from mpi4py import MPI
 
 from utilities.checks import assert_path_exists
+from utilities.loaders import load_sensor, load_sensors
+from utilities.offloaders import offload_sensors
 class GeneratorModel:
     ''' Base class for a generator of synthetic data from a model.'''
 
-    def __init__(self, model_path:str, sensor_positions_path: str, model_parameters: dict):
+    def __init__(self, model_path:str, sensor_positions_path: str, model_parameters: dict, output_parameters: dict):
         try:
             with open(sensor_positions_path) as f:
                 self.sensor_positions = json.load(f)
@@ -20,6 +22,7 @@ class GeneratorModel:
         self.model_path = model_path
 
         self.model_parameters = model_parameters
+        self.output_parameters = output_parameters
 
     def Generate(self):
         ''' Generate the data from the start'''
@@ -51,3 +54,21 @@ class GeneratorModel:
     def GenerateData(self):
         ''' Run the FEM model and generate the data'''
         raise NotImplementedError("GenerateData should be implemented")
+
+    @staticmethod
+    def sensor_offloader_wrapper(generate_data_func):
+        ''' Wrapper to simplify sensor offloading'''
+        
+        def wrapper(self, *args, **kwargs):
+            
+            generate_data_func(*args, **kwargs)
+            
+            # Store the value at the sensors
+            sensors = load_sensors(self.model_parameters["sensors_path"])
+            for sensor in sensors:
+                sensor.measure(self)
+
+            # Output the virtual measurements to a fike
+            offload_sensors(sensors, self.output_parameters["output_path"]+"/"+self.model_parameters["name"], self.output_parameters["output_format"])
+            
+        return wrapper

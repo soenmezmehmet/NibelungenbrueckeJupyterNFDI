@@ -1,12 +1,10 @@
-import importlib.util
+import importlib
 
 from generator_model_base_class import GeneratorModel
 
-def generator_model_factory(model_path, filepath, sensor_positions, model_parameters):
+def generator_model_factory(model_path, filepath, sensor_positions, model_parameters, output_parameters):
     # Import the module from the filepath
-    spec = importlib.util.spec_from_file_location("module", filepath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    module = importlib.import_module(filepath)
     
     # Find the derived class of GeneratorModel in the imported module
     for name, obj in module.__dict__.items():
@@ -17,4 +15,4 @@ def generator_model_factory(model_path, filepath, sensor_positions, model_parame
         raise ValueError(f"No derived class of GeneratorModel found in {filepath}")
     
     # Create an instance of the derived class with the given parameters
-    return model_class(model_path, sensor_positions, model_parameters)
+    return model_class(model_path, sensor_positions, model_parameters,output_parameters)
