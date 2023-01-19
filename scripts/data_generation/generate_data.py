@@ -11,7 +11,7 @@ root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_path)
 
 from utilities.checks import check_path_exists
-from generator_model_factory import generator_model_factory
+from data_generation.generator_model_factory import generator_model_factory
 def generate_data(parameters):
     "Generates synthetic data according to a process especified in the parameters"
     
@@ -29,7 +29,7 @@ def generate_data(parameters):
     for model_parameters in data_parameters["generation_models_list"]:
         generator_model = generator_model_factory(data_parameters["model_path"],
                                                   model_parameters["generator_path"], 
-                                                  model_parameters["sensor_positions_path"],
+                                                  model_parameters["sensors_path"],
                                                   model_parameters["model_parameters"],
                                                   data_parameters["output_parameters"])
         generator_model.Generate()

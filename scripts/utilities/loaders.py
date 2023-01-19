@@ -8,8 +8,8 @@ def load_sensors(sensors_path: str):
         sensors = json.load(f)
 
     loaded_sensors = []
-    for sensor in sensors:
-        loaded_sensors.append(load_sensor(sensor))
+    for sensor_name, sensor_params in sensors.items():
+        loaded_sensors.append(load_sensor(sensor_params))
 
     return loaded_sensors
 

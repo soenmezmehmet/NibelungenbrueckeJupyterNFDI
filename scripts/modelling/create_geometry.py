@@ -93,22 +93,22 @@ def create_geometry(parameters):
         new_cross_section_points = []
         new_cross_section_lines = []
 
-        # Extrude the cross-section to the new points
+        # Extrude the cross-section to the new points33
         for point, point_id in zip(old_cross_section_points, dz.keys()):
-            newDimTags = gmsh.model.geo.extrude(point,dx[point_id][section],dy[point_id][section],dz[point_id][section])
+            newDimTags = gmsh.model.geo.extrude([point],dx[point_id][section],dy[point_id][section],dz[point_id][section])
             new_cross_section_points += [newDimTags[0]]
             grouped_points[point[1]] = newDimTags[0][1]
             grouped_z_lines[point[1]] = newDimTags[1][1]
         
         # Create the wireframe of the new cross-section and update
-        for start, end  in [gmsh.model.getBoundary(line) for line in old_cross_section_lines]:
+        for start, end  in [gmsh.model.getBoundary([line]) for line in old_cross_section_lines]:
             cs_line= [(1,gmsh.model.geo.addLine(grouped_points[start[1]],grouped_points[end[1]]))]
             new_cross_section_lines += cs_line
             grouped_cs_lines[grouped_points[start[1]]] = cs_line[0][1]
 
         # Create the closed loops and surfaces of the section
         for old_cs_line, new_cs_line in zip(old_cross_section_lines, new_cross_section_lines):
-            start_old, end_old = gmsh.model.getBoundary(old_cs_line)
+            start_old, end_old = gmsh.model.getBoundary([old_cs_line])
             curve_loop = gmsh.model.geo.addCurveLoop([-old_cs_line[1],grouped_z_lines[start_old[1]],new_cs_line[1],-grouped_z_lines[end_old[1]]])
             gmsh.model.geo.addPlaneSurface([curve_loop])
         
@@ -123,6 +123,11 @@ def create_geometry(parameters):
     # Remove duplicates
     gmsh.model.geo.removeAllDuplicates()
     gmsh.model.geo.synchronize()
+
+    # Create a general PhysicalGroup for the surfaces
+    surfaces = gmsh.model.getEntities(dim=2)
+    surface_tags = [surfaces[1] for surfaces in surfaces]
+    gmsh.model.addPhysicalGroup(dim=2, tags=surface_tags, tag=42)
 
     # Save the model
     gmsh.write(geo_parameters["output_path"]+geo_parameters["output_format"])

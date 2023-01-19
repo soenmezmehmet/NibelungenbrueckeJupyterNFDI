@@ -4,14 +4,14 @@ from petsc4py.PETSc import ScalarType
 
 from dolfinx import fem
 
-from generator_model_base_class import GeneratorModel
+from data_generation.generator_model_base_class import GeneratorModel
 from utilities.boundary_condition_factory import boundary_condition_factory
 
 class DisplacementGenerator(GeneratorModel):
     ''' Generates the displacements at the sensors for a given load configuration.'''
     
-    def __init__(self, model_path: str, sensor_positions_path: str, model_parameters: dict):
-        super().__init__(model_path, sensor_positions_path, model_parameters)
+    def __init__(self, model_path: str, sensor_positions_path: str, model_parameters: dict, output_parameters: dict):
+        super().__init__(model_path, sensor_positions_path, model_parameters, output_parameters)
 
         self.material_parameters = model_parameters["material_parameters"]
 
@@ -30,7 +30,7 @@ class DisplacementGenerator(GeneratorModel):
 
         u = ufl.TrialFunction(self.V)
         v = ufl.TestFunction(self.V)
-        f = fem.Constant(self.mesh, ScalarType((0, -self.material_parameters["rho"]*self.model_parameters["g"],0)))
+        f = fem.Constant(self.mesh, ScalarType((0, -self.material_parameters["rho"]*self.material_parameters["g"],0)))
         self.a = ufl.inner(self.sigma(u), self.epsilon(v)) * ufl.dx
         self.L = ufl.dot(f, v) * ufl.dx + ufl.dot(T, v) * ds
 
@@ -39,9 +39,9 @@ class DisplacementGenerator(GeneratorModel):
         # Code to generate displacement data
 
         # Solve the problem
-        problem = fem.petsc.LinearProblem(self.a, self.L, bcs=[self.bcs], petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+        problem = fem.petsc.LinearProblem(self.a, self.L, bcs=self.bcs, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
         self.displacement = problem.solve()
-
+       
         # The wrapper takes care of the offloading
 
 
@@ -58,10 +58,11 @@ class DisplacementGenerator(GeneratorModel):
         return ufl.sym(ufl.grad(u)) # Equivalent to 0.5*(ufl.nabla_grad(u) + ufl.nabla_grad(u).T)
 
     def sigma(self, u):
-        return self.material_parameters["lambda"] * ufl.nabla_div(u) * ufl.Identity(u.geometric_dimension()) + 2*self.material_parameters["mu"]*self.epsilon(u)
+        return self.material_parameters["lambda"] * ufl.nabla_div(u) * ufl.Identity(len(u)) + 2*self.material_parameters["mu"]*self.epsilon(u)
 
     def _get_default_parameters():
         default_parameters = {
+            "model_name":"displacements",
             "material_parameters":{
                 "rho": 1.0,
                 "g": 100,

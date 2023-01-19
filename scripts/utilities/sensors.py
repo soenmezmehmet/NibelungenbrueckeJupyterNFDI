@@ -1,5 +1,5 @@
 import numpy as np
-
+import dolfinx as df
 
 class Sensors(dict):
     """
@@ -69,7 +69,21 @@ class DisplacementSensor(Sensor):
                 time of measurement for time dependent problems
         """
         # get displacements
-        self.data.append(problem.displacement(self.where))
+        bb_tree = df.geometry.BoundingBoxTree(problem.mesh, problem.mesh.topology.dim)
+        cells = []
+        points_on_proc = []
+
+        # Find cells whose bounding-box collide with the the points
+        cell_candidates = df.geometry.compute_collisions(bb_tree, self.where)
+
+        # Choose one of the cells that contains the point
+        colliding_cells = df.geometry.compute_colliding_cells(problem.mesh, cell_candidates, self.where)
+        for i, point in enumerate(self.where):
+            if len(colliding_cells)>0:
+                points_on_proc.append(point)
+                cells.append(colliding_cells.array[0])
+        points_on_proc = np.array(points_on_proc, dtype=np.float64)
+        self.data.append(problem.displacement.eval(points_on_proc, cells))
         self.time.append(t)
 
 

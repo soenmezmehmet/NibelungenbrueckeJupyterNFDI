@@ -1,13 +1,25 @@
 {
     "model_path": "input/models/mesh.msh",
     "output_parameters":{
-        "output_path": "data",
+        "output_path": "input/data",
         "output_format": ".h5"},
     "generation_models_list": [{
-        "generator_path": "displacement_generator.py",
-        "sensor_positions_path": "input/sensors/sensors_displacements.json",
+        "generator_path": "displacement_generator",
+        "sensors_path": "input/sensors/sensors_displacements.json",
         "model_parameters": {
-            
+            "model_name": "displacements",
+            "material_parameters":{
+                "rho": 1.0,
+                "g": 100,
+                "mu": 1,
+                "lambda": 1.25
+            },
+            "tension_z": 0.0,
+            "boundary_conditions": [{
+                "model":"clamped_boundary",
+                "side_coord": 0.0,
+                "coord": 0
+            }]
         }
     }
     ]
