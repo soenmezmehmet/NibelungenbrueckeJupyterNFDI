@@ -3,11 +3,12 @@ import ufl
 from petsc4py.PETSc import ScalarType
 
 from dolfinx import fem
-
+import dolfinx as df
+from mpi4py import MPI
 from data_generation.generator_model_base_class import GeneratorModel
 from utilities.boundary_condition_factory import boundary_condition_factory
 
-class DisplacementGenerator(GeneratorModel):
+class Displacement3DGenerator(GeneratorModel):
     ''' Generates the displacements at the sensors for a given load configuration.'''
     
     def __init__(self, model_path: str, sensor_positions_path: str, model_parameters: dict, output_parameters: dict):
@@ -19,6 +20,10 @@ class DisplacementGenerator(GeneratorModel):
     def GenerateModel(self):
         # Code to generate the displacement model
         
+        # self.mesh = df.mesh.create_box(comm=MPI.COMM_WORLD,
+        #                     points=((0.0, 0.0, 0.0), (-8.0, -8.0, 100.0)), n=(16, 16, 100),
+        #                     cell_type=df.mesh.CellType.hexahedron)
+
         # Generate function space
         self.V = fem.VectorFunctionSpace(self.mesh, ("CG", 1))
 
@@ -44,6 +49,12 @@ class DisplacementGenerator(GeneratorModel):
        
         # The wrapper takes care of the offloading
 
+        # Paraview output
+        if self.model_parameters["paraview_output"]:
+            with df.io.XDMFFile(self.mesh.comm, self.model_parameters["paraview_output_path"]+"/"+self.model_parameters["model_name"]+".xdmf", "w") as xdmf:
+                xdmf.write_mesh(self.mesh)
+                xdmf.write_function(self.displacement)
+
 
     def LoadBCs(self):
 
@@ -63,6 +74,8 @@ class DisplacementGenerator(GeneratorModel):
     def _get_default_parameters():
         default_parameters = {
             "model_name":"displacements",
+            "paraview_output": False,
+            "paraview_output_path": "output/paraview",
             "material_parameters":{
                 "rho": 1.0,
                 "g": 100,

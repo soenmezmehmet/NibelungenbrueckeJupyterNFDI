@@ -129,6 +129,11 @@ def create_geometry(parameters):
     surface_tags = [surfaces[1] for surfaces in surfaces]
     gmsh.model.addPhysicalGroup(dim=2, tags=surface_tags, tag=42)
 
+     # Add the lines to the general PhysicalGroup
+    lines = gmsh.model.getEntities(dim=1)
+    line_tags = [line[1] for line in lines]
+    gmsh.model.addPhysicalGroup(dim=1, tags=line_tags, tag=42)
+
     # Save the model
     gmsh.write(geo_parameters["output_path"]+geo_parameters["output_format"])
 
