@@ -6,6 +6,7 @@
         "pilot_top_height": 105.849,
         "pilot_width": 2.0,
         "pilot_fly": 3.47,
+        "pilot_hole_height":4.0,
         "span_bottom_height": 102.698,
         "span_top_height": 105.198,
         "span_width": 2.0,
@@ -22,14 +23,16 @@
         "interpolation": "parabolic",
         "output_path": "input/models/geometry",
         "output_format": ".geo_unrolled",
-        "extrude": "lines"
+        "extrude": "surfaces",
+        "physical_group_tag_pilot_holes": [2,3]
 
     },
     "mesh": {
         "geometry_path": "input/models/geometry",
         "geometry_format": ".geo_unrolled",
-        "characteristic_length_min": 1.0,
+        "characteristic_length_min": 0.2,
         "characteristic_length_max": 2.0,
+        "mesh_dimension":3,
         "output_path": "input/models/mesh"
     }
 }

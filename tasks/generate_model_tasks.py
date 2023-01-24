@@ -41,5 +41,5 @@ def task_generate_mesh():
 if __name__ == "__main__":
 
     create_cross_section3D(model_parameters["cross_section"])
-    # create_geometry(model_parameters["geometry"])
-    # create_mesh(model_parameters["mesh"])
+    create_geometry(model_parameters["geometry"])
+    create_mesh(model_parameters["mesh"])

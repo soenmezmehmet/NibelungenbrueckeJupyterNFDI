@@ -147,6 +147,7 @@ def create_cross_section3D(parameters):
     pilot_top_height=cs_parameters["pilot_top_height"]
     pilot_width=cs_parameters["pilot_width"]
     pilot_fly=cs_parameters["pilot_fly"]
+    pilot_hole_height = cs_parameters["pilot_hole_height"]
     deck_thickness=cs_parameters["deck_thickness"]
     gap_length=cs_parameters["gap_length"]
     wall_thickness=cs_parameters["wall_thickness"]
@@ -166,15 +167,26 @@ def create_cross_section3D(parameters):
     p08 = gmsh.model.geo.addPoint(gap_length/2 , -(pilot_top_height-pilot_bottom_height), 0, tag=8)
     p07 = gmsh.model.geo.addPoint(gap_length/2 , -deck_thickness, 0, tag=7)
 
+    gmsh.model.geo.synchronize()
+
+    gmsh.model.addPhysicalGroup(dim=0, tags=[p01,p02,p03,p04,p05,p06,p07,p08,p09,p10,p11,p12], tag=1)
+
     # Define the points for the hole
     ph1 =gmsh.model.geo.addPoint(-gap_length/2 - pilot_width + wall_thickness,-deck_thickness, 0, tag=201)
-    ph2 =gmsh.model.geo.addPoint(-gap_length/2 - pilot_width + wall_thickness,-(pilot_top_height-pilot_bottom_height)+wall_thickness, 0, tag=202)
-    ph3 =gmsh.model.geo.addPoint(-gap_length/2 - wall_thickness,-(pilot_top_height-pilot_bottom_height)+wall_thickness, 0, tag=203)
+    ph2 =gmsh.model.geo.addPoint(-gap_length/2 - pilot_width + wall_thickness,-deck_thickness-pilot_hole_height, 0, tag=202)
+    ph3 =gmsh.model.geo.addPoint(-gap_length/2 - wall_thickness,-deck_thickness-pilot_hole_height, 0, tag=203)
     ph4 =gmsh.model.geo.addPoint(-gap_length/2 - wall_thickness, -deck_thickness, 0, tag=204)
     ph8 =gmsh.model.geo.addPoint(gap_length/2 + pilot_width - wall_thickness,-deck_thickness, 0, tag=208)
-    ph7 =gmsh.model.geo.addPoint(gap_length/2 + pilot_width - wall_thickness,-(pilot_top_height-pilot_bottom_height)+wall_thickness, 0, tag=207)
-    ph6 =gmsh.model.geo.addPoint(gap_length/2 + wall_thickness, -(pilot_top_height-pilot_bottom_height)+wall_thickness, 0, tag=206)
+    ph7 =gmsh.model.geo.addPoint(gap_length/2 + pilot_width - wall_thickness,-deck_thickness-pilot_hole_height, 0, tag=207)
+    ph6 =gmsh.model.geo.addPoint(gap_length/2 + wall_thickness, -deck_thickness-pilot_hole_height, 0, tag=206)
     ph5 =gmsh.model.geo.addPoint(gap_length/2 + wall_thickness, -deck_thickness, 0, tag=205)
+
+    gmsh.model.geo.synchronize()
+
+    # Create a general PhysicalGroup for the points in hole 1
+    gmsh.model.addPhysicalGroup(dim=0, tags=[ph1,ph2,ph3,ph4], tag=2)
+    # Create a general PhysicalGroup for the points in hole 2
+    gmsh.model.addPhysicalGroup(dim=0, tags=[ph5,ph6,ph7,ph8], tag=3)
 
     # Create the lines for the pilot
     l01 = gmsh.model.geo.addLine(p01, p02, tag=1)
@@ -190,7 +202,10 @@ def create_cross_section3D(parameters):
     l11 = gmsh.model.geo.addLine(p11, p12, tag=11)
     l12 = gmsh.model.geo.addLine(p12, p01, tag=12)
 
-    pilot_curve_loop = gmsh.model.geo.addCurveLoop([l01, l02, l03, l04, l05, l06, l07, l08, l09, l10, l11, l12], reorient=True)
+    gmsh.model.geo.synchronize()
+
+    gmsh.model.addPhysicalGroup(dim=1, tags=[l01,l02,l03,l04,l05,l06,l07,l08,l09,l10,l11,l12], tag=1)
+    pilot_curve_loop = gmsh.model.geo.addCurveLoop([l01, l02, l03, l04, l05, l06, l07, l08, l09, l10, l11, l12], reorient=True, tag = 1)
 
     l13 = gmsh.model.geo.addLine(ph1, ph2, tag=13)
     l14 = gmsh.model.geo.addLine(ph2, ph3, tag=14)
@@ -201,11 +216,16 @@ def create_cross_section3D(parameters):
     l19 = gmsh.model.geo.addLine(ph7, ph8, tag=19)
     l20 = gmsh.model.geo.addLine(ph8, ph5, tag=20)
 
-    pilot_hole_loop_1 = gmsh.model.geo.addCurveLoop([l13, l14, l15, l16], reorient=True)
-    pilot_hole_loop_2 = gmsh.model.geo.addCurveLoop([l17, l18, l19, l20], reorient=True)
+    gmsh.model.geo.synchronize()
+
+    gmsh.model.addPhysicalGroup(dim=1, tags=[l13,l14,l15,l16], tag=2)
+    gmsh.model.addPhysicalGroup(dim=1, tags=[l17,l18,l19,l20], tag=3)
+
+    pilot_hole_loop_1 = gmsh.model.geo.addCurveLoop([l13, l14, l15, l16], reorient=True, tag = 2)
+    pilot_hole_loop_2 = gmsh.model.geo.addCurveLoop([l17, l18, l19, l20], reorient=True, tag = 3)
 
     # Create surfaces
-    gmsh.model.geo.addPlaneSurface([pilot_curve_loop, pilot_hole_loop_1, pilot_hole_loop_2])
+    gmsh.model.geo.addPlaneSurface([pilot_curve_loop, pilot_hole_loop_1, pilot_hole_loop_2], tag = 1)
 
     # Synchronize the model
     gmsh.model.geo.synchronize()
@@ -237,13 +257,16 @@ def create_cross_section3D(parameters):
     p03 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, -deck_thickness, 0, tag=103)
     p04 = gmsh.model.geo.addPoint(-gap_length/2 - span_width, -(span_top_height-span_bottom_height), 0, tag=104)
     p05 = gmsh.model.geo.addPoint(-gap_length/2 , -(span_top_height-span_bottom_height), 0, tag=105)
-    p06 = gmsh.model.geo.addPoint(-gap_length/2 , -deck_thickness, 0, tag=6)
+    p06 = gmsh.model.geo.addPoint(-gap_length/2 , -deck_thickness, 0, tag=106)
     p12 = gmsh.model.geo.addPoint(gap_length/2 + span_width +span_fly, 0, 0, tag=112)
     p11 = gmsh.model.geo.addPoint(gap_length/2 + span_width +span_fly, -deck_thickness, 0, tag=111)
     p10 = gmsh.model.geo.addPoint(gap_length/2 + span_width, -deck_thickness, 0, tag=110)
     p09 = gmsh.model.geo.addPoint(gap_length/2 + span_width, -(span_top_height-span_bottom_height), 0, tag=109)
     p08 = gmsh.model.geo.addPoint(gap_length/2 , -(span_top_height-span_bottom_height), 0, tag=108)
     p07 = gmsh.model.geo.addPoint(gap_length/2 , -deck_thickness, 0, tag=107)
+
+    # Create a general PhysicalGroup for the solid points
+    # gmsh.model.addPhysicalGroup(dim=0, tags=[p01,p02,p03,p04,p05,p06,p07,p08,p09,p10,p11,p12], tag=101)
 
     # Define the points for the hole
     ph1 =gmsh.model.geo.addPoint(-gap_length/2 - span_width + wall_thickness,-deck_thickness, 0, tag=301)
@@ -254,6 +277,11 @@ def create_cross_section3D(parameters):
     ph7 =gmsh.model.geo.addPoint(gap_length/2 + span_width - wall_thickness,-(span_top_height-span_bottom_height)+wall_thickness, 0, tag=307)
     ph6 =gmsh.model.geo.addPoint(gap_length/2 + wall_thickness, -(span_top_height-span_bottom_height)+wall_thickness, 0, tag=306)
     ph5 =gmsh.model.geo.addPoint(gap_length/2 + wall_thickness, -deck_thickness, 0, tag=305)
+
+    # # Create a general PhysicalGroup for the points in hole 1
+    # gmsh.model.addPhysicalGroup(dim=0, tags=[ph1,ph2,ph3,ph4], tag=102)
+    # # Create a general PhysicalGroup for the points in hole 2
+    # gmsh.model.addPhysicalGroup(dim=0, tags=[ph5,ph6,ph7,ph8], tag=103)
 
     # Create the lines for the span
     # l1 = gmsh.model.geo.addLine(p01, p12, tag=101)
@@ -269,8 +297,10 @@ def create_cross_section3D(parameters):
     l10 = gmsh.model.geo.addLine(p10, p11, tag=110)
     l11 = gmsh.model.geo.addLine(p11, p12, tag=111)
     l12 = gmsh.model.geo.addLine(p12, p01, tag=112)
+    
+    # gmsh.model.addPhysicalGroup(dim=1, tags=[l01,l02,l03,l04,l05,l06,l07,l08,l09,l10,l11,l12], tag=101)
 
-    span_curve_loop = gmsh.model.geo.addCurveLoop([l01, l02, l03, l04, l05, l06, l07, l08, l09, l10, l11, l12], reorient=True)
+    span_curve_loop = gmsh.model.geo.addCurveLoop([l01, l02, l03, l04, l05, l06, l07, l08, l09, l10, l11, l12], reorient=True, tag=101)
 
     l13 = gmsh.model.geo.addLine(ph1, ph2, tag=113)
     l14 = gmsh.model.geo.addLine(ph2, ph3, tag=114)
@@ -281,11 +311,14 @@ def create_cross_section3D(parameters):
     l19 = gmsh.model.geo.addLine(ph7, ph8, tag=119)
     l20 = gmsh.model.geo.addLine(ph8, ph5, tag=210)
 
-    span_hole_loop_1 = gmsh.model.geo.addCurveLoop([l13, l14, l15, l16], reorient=True)
-    span_hole_loop_2 = gmsh.model.geo.addCurveLoop([l17, l18, l19, l20], reorient=True)
+    # gmsh.model.addPhysicalGroup(dim=1, tags=[l13,l14,l15,l16], tag=102)
+    # gmsh.model.addPhysicalGroup(dim=1, tags=[l17,l18,l19,l20], tag=103)
+
+    span_hole_loop_1 = gmsh.model.geo.addCurveLoop([l13, l14, l15, l16], reorient=True, tag = 102)
+    span_hole_loop_2 = gmsh.model.geo.addCurveLoop([l17, l18, l19, l20], reorient=True, tag = 103)
 
     # Create surfaces
-    gmsh.model.geo.addPlaneSurface([span_curve_loop, span_hole_loop_1, span_hole_loop_2])
+    gmsh.model.geo.addPlaneSurface([span_curve_loop, span_hole_loop_1, span_hole_loop_2], tag = 101)
 
     # Synchronize the model
     gmsh.model.geo.synchronize()
@@ -314,7 +347,7 @@ def _get_default_parameters():
     #                                 ||          pilot_bottom
     
     default_parameters = {
-        "output_path": "inpu/models/cross_section",
+        "output_path": "input/models/cross_section",
         "output_format": ".geo",
         "pilot_bottom_height": 99.328,
         "pilot_top_height": 105.849,
