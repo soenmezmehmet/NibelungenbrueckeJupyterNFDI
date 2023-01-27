@@ -10,20 +10,20 @@ sys.path.append(root_path)
 from scripts.inference.run_inference_problem import run_inference_problem
 # from scripts.inference.plot_inference_results import plot_inference_results
 
-# def task_generate_synthetic_data():
-#     data_parameters_path = "input/settings/generate_data_parameters.json"
-#     with open(data_parameters_path, 'r') as f:
-#         data_parameters = json.load(f)
+def task_run_inference_problem():
+    inference_parameters_path = "input/settings/inference_parameters.json"
+    with open(inference_parameters_path, 'r') as f:
+        inference_parameters = json.load(f)
 
-#     return {'actions': [(generate_data,[],{'parameters':data_parameters})],
-#             'file_dep': [data_parameters["model_path"]],
-#             'targets': [data_parameters["output_path"]+data_parameters["output_format"]],
-#             'uptodate': [True]}
+    return {'actions': [(run_inference_problem,[],{'parameters':inference_parameters})],
+            'file_dep': [inference_parameters["model_path"]],
+            # 'targets': [inference_parameters["output_path"]+inference_parameters["output_format"]],
+            'uptodate': [True]}
 
 if __name__ == "__main__":
 
-    data_parameters_path = "input/settings/inference_parameters.json"
-    with open(data_parameters_path, 'r') as f:
-        data_parameters = json.load(f)
+    inference_parameters_path = "input/settings/inference_parameters.json"
+    with open(inference_parameters_path, 'r') as f:
+        inference_parameters = json.load(f)
         
-    run_inference_problem(data_parameters)
+    run_inference_problem(inference_parameters)
