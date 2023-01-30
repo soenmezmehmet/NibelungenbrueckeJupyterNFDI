@@ -1,6 +1,7 @@
 import os
 import sys
 import matplotlib.pyplot as plt
+import arviz as az
 # Get the parent directory of the current script
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Add the parent directory to sys.path
@@ -64,6 +65,17 @@ def run_inference_problem(parameters):
 
     # Run solver
     inference_data = solver.run(**parameters["run_parameters"])
+
+    # Save data
+    if parameters["output_parameters"]["output_format"]==".nc":
+        # TODO: Better error/error handling
+        # FIXME: Fix probeye so that the solver includes the option of passing the tex variable or the name
+        print("[Saving inference data] WARNING: Parameters with a tex field with math expressions give an error unless the solver saves them with the name field instead.")
+        az.to_netcdf(inference_data, parameters["output_parameters"]["output_path"]+parameters["output_parameters"]["output_format"])
+    else:
+        raise Exception(f"[Run inference]: Output format {parameters['output_parameters']['output_format']} not implemented. Implemented formats are: .nc")
+    
+    # TODO: The plots should go in a different task
     true_values = parameters["postprocessing"]["true_values"]
     if parameters["postprocessing"]["pair_plot"]:
         pair_plot_array = create_pair_plot(

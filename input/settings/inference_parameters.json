@@ -1,8 +1,8 @@
 {
     "model_path": "input/models/mesh.msh",
     "output_parameters":{
-        "output_path": "output/results",
-        "output_format": ".h5"
+        "output_path": "./output//inference_results",
+        "output_format": ".nc"
     },
     "print_info": true, 
     "inverse_problem_parameters":{
@@ -57,7 +57,7 @@
             "domain":"(0, 50)",
             "prior":{
                 "name": "LogNormal",
-                "mean": 1.0,
+                "mean": 0.0,
                 "std": 0.1
             }
         },
@@ -65,11 +65,11 @@
             "name":"lambda",
             "tex":"$\\lambda$",
             "info":"Lamé constant \\lambda",
-            "domain":"(0, 50)",
+            "domain":"(0.0, 50)",
             "prior":{
                 "name": "LogNormal",
-                "mean": 1.0,
-                "std": 0.1
+                "mean": 0.0,
+                "std": 0.4
             }
         },
         {
@@ -123,8 +123,8 @@
         "trace_plot_format": ".pdf",
         "true_values":{
             "rho": 10,
-            "mu": 2.5,
-            "lambda": 2.5,
+            "mu": 1,
+            "lambda": 1.25,
             "sigma": 0.5
         }    
     }
