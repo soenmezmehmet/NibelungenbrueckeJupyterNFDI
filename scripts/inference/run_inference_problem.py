@@ -1,6 +1,6 @@
 import os
 import sys
-
+import matplotlib.pyplot as plt
 # Get the parent directory of the current script
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Add the parent directory to sys.path
@@ -14,6 +14,10 @@ from inference.import_solver import import_solver
 
 from probeye.definition.inverse_problem import InverseProblem
 
+# local imports (inference data post-processing)
+from probeye.postprocessing.sampling_plots import create_pair_plot
+from probeye.postprocessing.sampling_plots import create_posterior_plot
+from probeye.postprocessing.sampling_plots import create_trace_plot
 
 def run_inference_problem(parameters):
     "Generates synthetic data according to a process especified in the parameters"
@@ -60,7 +64,40 @@ def run_inference_problem(parameters):
 
     # Run solver
     inference_data = solver.run(**parameters["run_parameters"])
+    true_values = parameters["postprocessing"]["true_values"]
+    if parameters["postprocessing"]["pair_plot"]:
+        pair_plot_array = create_pair_plot(
+            inference_data,
+            solver.problem,
+            true_values=true_values,
+            focus_on_posterior=True,
+            show_legends=True,
+            show = False,
+            title="Sampling results from Solver (pair plot)",
+        )
+        fig = plt.gcf()
+        fig.savefig(parameters["postprocessing"]["output_pair_plot"]+parameters["postprocessing"]["pair_plot_format"])
 
+    if parameters["postprocessing"]["posterior_plot"]:
+        post_plot_array = create_posterior_plot(
+            inference_data,
+            solver.problem,
+            show = False,
+            true_values=true_values,
+            title="Sampling results from Solver (posterior plot)",
+        )
+        fig = plt.gcf()
+        fig.savefig(parameters["postprocessing"]["output_posterior_plot"]+parameters["postprocessing"]["posterior_plot_format"])
+
+    if parameters["postprocessing"]["trace_plot"]:
+        trace_plot_array = create_trace_plot(
+            inference_data,
+            solver.problem, 
+            show = False,
+            title="Sampling results from Solver (trace plot)",
+        )
+        fig = plt.gcf()
+        fig.savefig(parameters["postprocessing"]["output_trace_plot"]+parameters["postprocessing"]["trace_plot_format"])
 
 def _get_default_parameters():
 

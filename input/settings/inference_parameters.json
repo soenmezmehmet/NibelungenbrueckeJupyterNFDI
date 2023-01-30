@@ -110,5 +110,22 @@
         "n_steps": 60,
         "n_initial_steps": 20,
         "n_walkers": 10
-    }    
+    },
+    "postprocessing":{
+        "pair_plot": true,
+        "output_pair_plot": "output/figures/pair_plot",
+        "pair_plot_format": ".pdf",
+        "posterior_plot": true,
+        "output_posterior_plot": "output/figures/posterior_plot",
+        "posterior_plot_format": ".pdf",
+        "trace_plot": true,
+        "output_trace_plot": "output/figures/trace_plot",
+        "trace_plot_format": ".pdf",
+        "true_values":{
+            "rho": 10,
+            "mu": 2.5,
+            "lambda": 2.5,
+            "sigma": 0.5
+        }    
+    }
 }
