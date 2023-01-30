@@ -1,7 +1,7 @@
 {
     "model_path": "input/models/mesh.msh",
     "output_parameters":{
-        "output_path": "./output//inference_results",
+        "output_path": "./output/results/inference_results",
         "output_format": ".nc"
     },
     "print_info": true, 
