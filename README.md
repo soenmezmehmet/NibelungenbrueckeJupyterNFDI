@@ -95,10 +95,10 @@ Another probable requirement would be the analysis of a different set of sensors
 
 ### Adding custom functionalities
 To add easily new functionalities, NibelungenBruecke implements a set of base classes that allow for the new implementations to work seamlesly with the rest of the demonstrator. Current available options are:
-- Custom geometries: simply deactivate the "generate model task" and indicate the path to the desired mesh
-- Custom data input: analogously to custom geometries, deactivate the corresponding task and indicate the path to data accordingly. The data format and structure must be compatible with the inference model.
-- Custom synthetic generator model: Derive a new class from `GeneratorModel` in a new file and save it to [nibelungenbruecke/scripts/data_generation](nibelungenbruecke/scripts/data_generation). Modify the settings' JSON file to point to this model as the generator.
-- Custom forward model: Derive a new class from probeye's `ForwardModel` in a new file and save it to [nibelungenbruecke/scripts/inference](nibelungenbruecke/scripts/inference). Modify the settings' JSON file to point to this model as the generator.
-- Custom FEM boundary conditions: The available boundary conditions are located at [nibelungenbruecke/scripts/utilities/boundary_conditions.py](nibelungenbruecke/scripts/utilities/boundary_conditions.py). Add new ones to the file and call them from the definition in the settings JSON file.
+- **Custom geometries**: simply deactivate the "generate model task" and indicate the path to the desired mesh
+- **Custom data input**: analogously to custom geometries, deactivate the corresponding task and indicate the path to data accordingly. The data format and structure must be compatible with the inference model.
+- **Custom synthetic generator model**: Derive a new class from `GeneratorModel` in a new file and save it to [nibelungenbruecke/scripts/data_generation](nibelungenbruecke/scripts/data_generation). Modify the settings' JSON file to point to this model as the generator.
+- **Custom forward model**: Derive a new class from probeye's `ForwardModel` in a new file and save it to [nibelungenbruecke/scripts/inference](nibelungenbruecke/scripts/inference). Modify the settings' JSON file to point to this model as the generator.
+- **Custom FEM boundary conditions**: The available boundary conditions are located at [nibelungenbruecke/scripts/utilities/boundary_conditions.py](nibelungenbruecke/scripts/utilities/boundary_conditions.py). Add new ones to the file and call them from the definition in the settings JSON file.
 # Expected results
 WIP
