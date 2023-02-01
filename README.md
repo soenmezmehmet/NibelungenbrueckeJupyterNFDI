@@ -57,15 +57,11 @@ For visualization, [paraview](https://www.paraview.org/) is recommended. These p
 
 # Installation and use
 ## Installation
-Navigate to the folder `nibelungenbruecke`:
-```
-cd nibelungenbruecke
-```
-and install the folder as a package using pip:
+From the root of the cloned repository, install the folder as a package using pip:
 ```
 pip install .
 ```
-Now th contents in `nibelungenbruecke` are available for their use in any Python script calling `import nibelungenbruecke`.
+Now the contents in `nibelungenbruecke` are available for their use in any Python script calling `import nibelungenbruecke`.
 
 ## Use
 The NibelungenbrückeDemonstrator provides the following modules:
