@@ -10,7 +10,8 @@ def task_posterior_predictive():
 
     posterior_predictive_parameters = postprocess_parameters["posterior_predictive"]
     return {'actions': [(posterior_predictive,[],{'parameters':posterior_predictive_parameters})],
-            'file_dep': [posterior_predictive_parameters["model_path"],posterior_predictive_parameters["inference_data_path"]],
+            'file_dep': [posterior_predictive_parameters["model_path"],posterior_predictive_parameters["inference_data_path"],
+                        postprocess_parameters_path],
             'targets': [posterior_predictive_parameters["output_parameters"]["output_path"]+posterior_predictive_parameters["output_parameters"]["output_format"]],
             'uptodate': [True]}
 

@@ -16,7 +16,7 @@ def task_run_inference_problem():
         targets.append(inference_parameters["output_parameters"]["output_path"]+inference_parameters["output_parameters"]["output_format"])
     
     return {'actions': [(run_inference_problem,[],{'parameters':inference_parameters})],
-            'file_dep': [inference_parameters["model_path"]],
+            'file_dep': [inference_parameters["model_path"], inference_parameters_path],
             'targets': targets,
             'uptodate': [True]}
 
