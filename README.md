@@ -1,7 +1,7 @@
 ## TO-DO
 - Implement CI/CD
 - Implement tests
-- Implement automatic document gneeration
+- Implement automatic document generation
 - Minimal environment dependencies
 - Comprehensive documentation
 - Code formatting
