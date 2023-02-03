@@ -15,15 +15,15 @@
             "forward_model_path": "probeye_forward_model_bridge",
             "input_sensors_path": "input/sensors/sensors_displacements_posterior_predictive_input.json",
             "output_sensors_path": "input/sensors/sensors_displacements_posterior_predictive_output.json",
-            "problem_parameters": ["rho", "mu", "lambda"], 
+            "problem_parameters": ["E", "nu", "rho"], 
             "parameter_key_paths": [["material_parameters"],["material_parameters"],["material_parameters"]],
             "model_parameters": {
                 "model_name": "displacements",
                 "material_parameters":{
-                    "rho": 10.0,
-                    "g": 100,
-                    "mu": 1,
-                    "lambda": 1.25
+                    "E": 30e12,
+                    "g": 9.81,
+                    "nu": 0.2,
+                    "rho": 2350
                 },
                 "tension_z": 0.0,
                 "boundary_conditions": {

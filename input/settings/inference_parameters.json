@@ -15,15 +15,15 @@
         "forward_model_path": "probeye_forward_model_bridge",
         "input_sensors_path": "input/sensors/sensors_displacements_probeye_input.json",
         "output_sensors_path": "input/sensors/sensors_displacements_probeye_output.json",
-        "problem_parameters": ["rho", "mu", "lambda"], 
+        "problem_parameters": ["E", "nu", "rho"], 
         "parameter_key_paths": [["material_parameters"],["material_parameters"],["material_parameters"]],
         "model_parameters": {
             "model_name": "displacements",
             "material_parameters":{
-                "rho": 10.0,
-                "g": 100,
-                "mu": 1,
-                "lambda": 1.25
+                "E": 30e12,
+                "g": 9.81,
+                "nu": 0.2,
+                "rho": 2350
             },
             "tension_z": 0.0,
             "boundary_conditions": {
@@ -46,25 +46,25 @@
             "info":"Normalized mass",
             "prior":{
                 "name": "LogNormal",
-                "mean": 2,
+                "mean": 3,
                 "std": 0.5
             }
         },
         {
-            "name":"mu",
-            "tex":"mu",
-            "info":"Lamé constant \\mu",
+            "name":"E",
+            "tex":"E",
+            "info":"Young's modulus",
             "domain":"(0, 50)",
             "prior":{
                 "name": "LogNormal",
-                "mean": 0.0,
-                "std": 0.1
+                "mean": 12,
+                "std": 0.5
             }
         },
         {
-            "name":"lambda",
-            "tex":"lambda",
-            "info":"Lamé constant \\lambda",
+            "name":"nu",
+            "tex":"nu",
+            "info":"Poisson's ratio \\nu",
             "domain":"(0.0, 50)",
             "prior":{
                 "name": "LogNormal",
@@ -122,9 +122,10 @@
         "output_trace_plot": "output/figures/trace_plot",
         "trace_plot_format": ".pdf",
         "true_values":{
-            "rho": 10,
-            "mu": 1,
-            "lambda": 1.25,
+            "E": 40e12,
+            "g": 9.81,
+            "nu": 0.2,
+            "rho": 2350,
             "sigma": 0.5
         }    
     }
