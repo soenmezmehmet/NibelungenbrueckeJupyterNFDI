@@ -27,6 +27,7 @@ class BridgeModel(ForwardModelBase):
         super().__init__(name, *args, **kwargs)
         self.model_parameters = kwargs["forward_model_parameters"]["model_parameters"]
         self.material_parameters = kwargs["forward_model_parameters"]["model_parameters"]["material_parameters"]
+        self.calculate_lame_constants()
         
     def interface(self):
         self.parameters = self.forward_model_parameters["problem_parameters"]
@@ -43,7 +44,7 @@ class BridgeModel(ForwardModelBase):
         for key, key_path in zip(self.parameters, self.parameter_key_paths):
             modify_key(self.forward_model_parameters["model_parameters"], key, inp[key], path=key_path)
         self.calculate_lame_constants()
-        
+
         # Update possible changes in variables
         self.lambda_.value = float(self.material_parameters["lambda"])
         self.mu.value = float( self.material_parameters["mu"])

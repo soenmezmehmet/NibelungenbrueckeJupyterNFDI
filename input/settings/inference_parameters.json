@@ -46,7 +46,7 @@
             "info":"Normalized mass",
             "prior":{
                 "name": "LogNormal",
-                "mean": 3,
+                "mean": 8,
                 "std": 0.5
             }
         },
@@ -54,10 +54,10 @@
             "name":"E",
             "tex":"E",
             "info":"Young's modulus",
-            "domain":"(0, 50)",
+            "domain":"(20000000000000, 50000000000000)",
             "prior":{
                 "name": "LogNormal",
-                "mean": 12,
+                "mean": 31.0,
                 "std": 0.5
             }
         },
@@ -65,22 +65,22 @@
             "name":"nu",
             "tex":"nu",
             "info":"Poisson's ratio \\nu",
-            "domain":"(0.0, 50)",
+            "domain":"(0.0, 0.5)",
             "prior":{
                 "name": "LogNormal",
-                "mean": 0.0,
-                "std": 0.4
+                "mean": -1.5,
+                "std": 0.2
             }
         },
         {
             "name":"sigma",
-            "domain": "(0, +oo)",
+            "domain": "(-1.0, +oo)",
             "tex":"sigma",
             "info":"Standard deviation, of zero-mean Gaussian noise model",
             "prior":{
                 "name":"Uniform",
-                "low": 0.0,
-                "high": 0.8
+                "low": -0.2,
+                "high": 0.2
             }
         }
     ],
@@ -89,9 +89,9 @@
             "name": "TestSeries_1",
             "input_data_path": "input/data/displacements.h5",
             "data_format": ".h5",
-            "sensor_names": ["DisplacementSensor0","DisplacementSensor1","DisplacementSensor2"],
-            "data_values": ["Data","Data","Data"],
-            "parameter_names": ["disp_pilot_1", "disp_span", "disp_pilot_2"]
+            "sensor_names": ["DisplacementSensor0"],
+            "data_values": ["Data"],
+            "parameter_names": [ "disp_span"]
         }
     ],
     "likelihood_model_parameters":{
@@ -107,8 +107,8 @@
         "show_progress": true
     },
     "run_parameters":{
-        "n_steps": 60,
-        "n_initial_steps": 20,
+        "n_steps": 1000,
+        "n_initial_steps": 100,
         "n_walkers": 10
     },
     "postprocessing":{
@@ -123,10 +123,9 @@
         "trace_plot_format": ".pdf",
         "true_values":{
             "E": 40e12,
-            "g": 9.81,
             "nu": 0.2,
             "rho": 2350,
-            "sigma": 0.5
+            "sigma": 0.0
         }    
     }
 }
