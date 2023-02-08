@@ -4,7 +4,7 @@ from nibelungenbruecke.scripts.modelling.create_cross_section import create_cros
 from nibelungenbruecke.scripts.modelling.create_geometry import create_geometry
 from nibelungenbruecke.scripts.modelling.create_mesh import create_mesh
 
-model_parameters_path = "input/settings/model_parameters.json"
+model_parameters_path = "./input/settings/model_parameters.json"
 with open(model_parameters_path, 'r') as f:
     model_parameters = json.load(f)
 

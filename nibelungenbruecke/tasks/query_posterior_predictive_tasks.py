@@ -3,7 +3,7 @@ import json
 from nibelungenbruecke.scripts.postprocessing.posterior_predictive import posterior_predictive
 
 def task_posterior_predictive():
-    postprocess_parameters_path = "input/settings/postprocess_parameters.json"
+    postprocess_parameters_path = "./input/settings/postprocess_parameters.json"
     with open(postprocess_parameters_path, 'r') as f:
         postprocess_parameters = json.load(f)
         # TODO: Add targets for the histogram plots
@@ -17,7 +17,7 @@ def task_posterior_predictive():
 
 if __name__ == "__main__":
 
-    postprocess_parameters_path = "input/settings/postprocess_parameters.json"
+    postprocess_parameters_path = "./input/settings/postprocess_parameters.json"
     with open(postprocess_parameters_path, 'r') as f:
         postprocess_parameters = json.load(f)
 

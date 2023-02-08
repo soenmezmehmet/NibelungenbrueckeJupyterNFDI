@@ -3,7 +3,7 @@ import json
 from nibelungenbruecke.scripts.inference.run_inference_problem import run_inference_problem
 
 def task_run_inference_problem():
-    inference_parameters_path = "input/settings/inference_parameters.json"
+    inference_parameters_path = "./input/settings/inference_parameters.json"
     with open(inference_parameters_path, 'r') as f:
         inference_parameters = json.load(f)
         targets = []
@@ -22,7 +22,7 @@ def task_run_inference_problem():
 
 if __name__ == "__main__":
 
-    inference_parameters_path = "input/settings/inference_parameters.json"
+    inference_parameters_path = "./input/settings/inference_parameters.json"
     with open(inference_parameters_path, 'r') as f:
         inference_parameters = json.load(f)
         

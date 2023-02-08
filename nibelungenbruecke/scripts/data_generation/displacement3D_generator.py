@@ -10,7 +10,7 @@ from nibelungenbruecke.scripts.utilities.boundary_condition_factory import bound
 
 class Displacement3DGenerator(GeneratorModel):
     ''' Generates the displacements at the sensors for a given load configuration.'''
-    # TODO: This could probably simplified by using the ForwardModel from probeye or the Problem from FenicsConcrete
+    # TODO: This could probably be simplified by using the ForwardModel from probeye or the Problem from FenicsConcrete
     # TODO: Delete duplicated Displacement model
     
     def __init__(self, model_path: str, sensor_positions_path: str, model_parameters: dict, output_parameters: dict = None):
