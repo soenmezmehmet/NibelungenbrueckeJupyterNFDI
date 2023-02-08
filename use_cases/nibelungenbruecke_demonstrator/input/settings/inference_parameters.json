@@ -1,5 +1,5 @@
 {
-    "model_path": "input/models/mesh.msh",
+    "model_path": "./input/models/mesh.msh",
     "output_parameters":{
         "output_path": "./output/results/inference_results",
         "output_format": ".nc"
@@ -13,8 +13,8 @@
         "name": "Nibelungenbrücke displacements",
         "experiments": ["TestSeries_1"],
         "forward_model_path": "probeye_forward_model_bridge",
-        "input_sensors_path": "input/sensors/sensors_displacements_probeye_input.json",
-        "output_sensors_path": "input/sensors/sensors_displacements_probeye_output.json",
+        "input_sensors_path": "./input/sensors/sensors_displacements_probeye_input.json",
+        "output_sensors_path": "./input/sensors/sensors_displacements_probeye_output.json",
         "problem_parameters": ["E", "nu", "rho"], 
         "parameter_key_paths": [["material_parameters"],["material_parameters"],["material_parameters"]],
         "model_parameters": {
@@ -87,7 +87,7 @@
     "experiment_list_parameters": [
         {
             "name": "TestSeries_1",
-            "input_data_path": "input/data/displacements.h5",
+            "input_data_path": "./input/data/displacements.h5",
             "data_format": ".h5",
             "sensor_names": ["DisplacementSensor0"],
             "data_values": ["Data"],
@@ -107,19 +107,19 @@
         "show_progress": true
     },
     "run_parameters":{
-        "n_steps": 1000,
-        "n_initial_steps": 100,
+        "n_steps": 200,
+        "n_initial_steps": 20,
         "n_walkers": 10
     },
     "postprocessing":{
         "pair_plot": true,
-        "output_pair_plot": "output/figures/pair_plot",
+        "output_pair_plot": "./output/figures/pair_plot",
         "pair_plot_format": ".pdf",
         "posterior_plot": true,
-        "output_posterior_plot": "output/figures/posterior_plot",
+        "output_posterior_plot": "./output/figures/posterior_plot",
         "posterior_plot_format": ".pdf",
         "trace_plot": true,
-        "output_trace_plot": "output/figures/trace_plot",
+        "output_trace_plot": "./output/figures/trace_plot",
         "trace_plot_format": ".pdf",
         "true_values":{
             "E": 40e12,
