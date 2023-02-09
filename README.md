@@ -92,30 +92,38 @@ To customize the demonstrator, it suffices with modifying the settings files in 
 Another probable requirement would be the analysis of a different set of sensors. To modify their characteristics and locations, change them in their definitions from [input/sensors](use_cases/nibelungenbruecke_demonstrator/input/sensors/). Virtual sensors for synthetic data generation and inference follow currently a different sintaxis.
 
 ### Input and Output data formating
-Properly retrieving and providing data is key for the good performance of the demonstrator. We can differentiate the information provided about the sensors and the data itself. Information for the sensors contains the metadata for the set of sensors. This includes the name and position of the sensor, as well as what quantities it is measuring, the dimension of the measurements and the format in which they are provided. Alternatively, the data itself contains the measurements provided to or from the model following a database or dataframe structure. Currently, the following sensors and structures are defined for the demonstrator example:
+Properly retrieving and providing data is key for the good performance of the demonstrator. We can differentiate the information provided about the sensors and the data itself. Information for the sensors contains the metadata for the set of sensors. This includes the name and position of the sensor, as well as what quantities it is measuring, the dimension of the measurements and the format in which they are provided. Alternatively, the data itself contains the measurements provided to or from the model following a database or dataframe structure. As a general reference, the values are given with units in the international system (SI units).
+The coordinate system follows:
+- **Coordinate X**: transversal direction of the bridge (same direction as the water flow) with origin on the West shore (Worms) of the river.
+- **Coordinate Y**: vertical direction of the bridge (height) with origin at the deck height at the western pilot.
+- **Coordinate Z**: longitudinal direction of the bridge (direction accross the river flow) with origin at the western pilot
+  
+Currently, the following sensors and structures are defined for the demonstrator example:
 - **Input displacement data**: It is provided as a `.h5` file wich includes in the first level the list of sensors used to measure the displacements. In the second level, i.e. for each sensor, we indicate the data, the data series, the position of the sensor, the time values at which the data is sampled and the type of value that we are measuring. As in the example we collect only one measurement per sensor, the data and time series will have only one entry each. Input measurements (for example, loads) must be located in a different file than output ones (for example, displacements). Example:
   
-| DisplacementSensor0 |                    |
-| :-----------------: | :----------------: |
-|        Data         |  [y_1, y_2, y_3]   |
-|        Time         |        1.0         |
-|      Position       | [ 0.0 , 0.0, 50.0] |
-|        Type         |  "Displacements"   |
+| DisplacementSensor0 |                    |    Units    |
+| :-----------------: | :----------------: | :---------: |
+|        Data         |  [y_1, y_2, y_3]   | meters [m]  |
+|        Time         |        1.0         | seconds [s] |
+|      Position       | [ 0.0 , 0.0, 50.0] | meters [m]  |
+|        Type         |  "Displacements"   |      -      |
+|     Error model     |      Gaussian      |      -      |
+|      Error std      |        0.0         | meters [m]  |
 
 - **Information on the output sensors**: This information is necessary to indicate the demonstrator which information it must produce and where. It is currently indicated in the sensor's `.json` files with the same metadata. *It would be possible to implement a function that retrieves the metadata information to another format*.
 
-- **Output posterior predictive data**: The posterior predictive queries provide the same information and format as in **Input displacement** but adds statistical information. Additionally, the posterior data is generated from a sampling procedure and the chosen samples are included in the output structure. Example:
+- **Output posterior predictive data**: The posterior predictive queries provide the same information and format as in **Input displacement** but adds statistical information. These statistical values (max, min, mean, std) refer to the specific set of random samples generated for the posterior predictive. Additionally, the posterior data is generated from a sampling procedure and the chosen samples are included in the output structure. Example:
   
-|  disp_span_new_1   |                            |
-| :----------------: | :------------------------: |
-|        Data        |   [y_1, y_2, y_3] x 100    |
-|        Time        |      *Not available*       |
-|      Position      |     [ 0.0 , 0.0, 25.0]     |
-|        Max         |  [ max_1 , max_2, max_3]   |
-|        Mean        | [ mean_1 , mean_2, mean_3] |
-|        Min         |  [ min_1 , min_2, min_3]   |
-| Standard deviation |  [ std_1 , std_2, std_3]   |
-|        Type        |      "Displacements"       |
+|  disp_span_new_1   |                            |    Units    |
+| :----------------: | :------------------------: | :---------: |
+|        Data        |   [y_1, y_2, y_3] x 100    | meters [m]  |
+|        Time        |      *Not available*       | seconds [s] |
+|      Position      |     [ 0.0 , 0.0, 25.0]     | meters [m]  |
+|        Max         |  [ max_1 , max_2, max_3]   | meters [m]  |
+|        Mean        | [ mean_1 , mean_2, mean_3] | meters [m]  |
+|        Min         |  [ min_1 , min_2, min_3]   |  meters[m]  |
+| Standard deviation |  [ std_1 , std_2, std_3]   |  meters[m]  |
+|        Type        |      "Displacements"       |      -      |
 
 **Note**: It is possible to implement a function as a pre-processing step that queries a database and transform the data from the native format to the format required by NibelungenbrueckeDemonstrator. Analogously, a post-processing function that transforms back the data to the required format and uploads them to a database is equally possible. Currently that is substituted by paths directions indicated in the `.json` settings' files.
 ### Adding custom functionalities
