@@ -1,0 +1,13 @@
+### Initialize Orchestrator
+POST http://127.0.0.1:8001/initialize_orchestrator
+Content-Type: application/json
+
+
+### Run Computation
+POST http://127.0.0.1:8001/run_computation
+Content-Type: application/json
+
+{
+    "E": 1000000000000.0,
+    "model_to_run": "Displacement_2"
+}
