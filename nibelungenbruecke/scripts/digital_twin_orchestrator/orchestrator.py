@@ -1,4 +1,3 @@
-#from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
 from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
 import json
 
@@ -42,7 +41,7 @@ if __name__ == "__main__":
     #    a = json.load(file)
     
     orchestrator = Orchestrator(path)
-    model_to_run = "Displacement_1"
+    model_to_run = "Displacement_2"
     input_value=round(2.7*10**11, 1)
     orchestrator.run(input_value, model_to_run)
     

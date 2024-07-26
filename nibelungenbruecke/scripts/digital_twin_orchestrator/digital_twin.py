@@ -12,8 +12,7 @@ class DigitalTwin:
         self.dt_path = dt_path
         self.model_to_run = model_to_run
         self.load_models()
-        self.cache_object = ObjectCache()
-        
+        self.cache_object = ObjectCache()       
         
     def load_models(self):
         with open(self.dt_path, 'r') as json_file:
@@ -26,7 +25,7 @@ class DigitalTwin:
                 self.cache_object_name = model_info["class"]
                 self.cache_model_path = model_info["path"]
                 return True
-        return False
+        return False    #TODO: Currently does not create new models if the model_to_run parametes is not in the dt_path json file!!
             
     def predict(self, input_value):      
         if self.set_model():
@@ -44,18 +43,17 @@ class DigitalTwin:
                 self.cache_object.cache_model =  digital_twin_model
                 
             else:
-                if self.cache_object.model_name == self.cache_object:
+                if self.cache_object.model_name == self.cache_object_name: #TODO: why??? -> changed now!!
                     digital_twin_model = self.cache_object.cache_model
                     
                 else:
                     digital_twin_model = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
-                    self.cache_object.cache_model =  digital_twin_model 
-                    
+                    self.cache_object.cache_model =  digital_twin_model                     
             
             self.cache_object.update_store(digital_twin_model)
                     
             if digital_twin_model.update_input(input_value):
                 digital_twin_model.solve()
-                return digital_twin_model.export_output()
+                return digital_twin_model.export_output(self.model_to_run)
             
-        return None
+        return None     #TODO: One possible consequence of the above TODO part. Could be enhanced by instead of returning None, create a new object/model with some default parameters

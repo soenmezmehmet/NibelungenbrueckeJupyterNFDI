@@ -69,7 +69,7 @@
 #%%
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import json
 import os
 import traceback
@@ -111,7 +111,7 @@ class Parameters(BaseModel):
 
 @app.post("/initialize_orchestrator")
 async def initialize_orchestrator():
-    file_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+    file_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
     try:
         orchestrator_manager.initialize(file_path)
         return {"message": "Orchestrator initialized successfully"}
@@ -123,7 +123,7 @@ async def initialize_orchestrator():
 async def run_computation(params: Parameters):
     try:
         orchestrator_manager.run_computation(params.E, params.model_to_run)
-        json_file_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/output_data.json"
+        json_file_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + params.model_to_run + ".json"
         json_content = orchestrator_manager.get_json_content(json_file_path)
         return {"json_content": json_content}
     except Exception as e:

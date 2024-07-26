@@ -102,9 +102,10 @@ class DisplacementModel(BaseModel):
         #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HSS-m-_Avg1']['displacements'][-1][0]
         self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
         
-    def export_output(self): #TODO: json_path as a input parameters!!
-        json_path = "output_data.json" #TODO: move to json file
+    def export_output(self, path: str): #TODO: json_path as a input parameters!! -> Changes' been done!
+        #json_path = "output_data.json" #TODO: move to json file
         
+        json_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + path + ".json"
         try:
             with open(json_path, 'r') as file:
                 output_data = json.load(file)
