@@ -9,6 +9,7 @@ from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
 import importlib
+import time
 
 class DisplacementModel(BaseModel):
     
@@ -115,6 +116,14 @@ class DisplacementModel(BaseModel):
             
         output_data.setdefault('real_sensor_output', []).append(self.sensor_out)
         output_data.setdefault('virtual_sensor_output', []).append(self.vs_sensor_out)
+
+        local_time = time.localtime()
+        output_data.setdefault('time', []).append(time.strftime("%y-%m-%d %H:%M:%S", local_time))
+
+        with open(self.dt_path, 'r') as f:
+            dt_params = json.load(f)
+        output_data.setdefault('Input_parameter', []).append(dt_params[0]["parameters"]["E"])
+
         
         with open(json_path, 'w') as file:
             json.dump(output_data, file)
