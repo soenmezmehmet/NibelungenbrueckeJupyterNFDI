@@ -33,9 +33,15 @@ class NibelungenExperiment(Experiment):
     @staticmethod
     def default_parameters() -> dict[str, pint.Quantity]:
         setup_parameters = {}
-        # setup_parameters["load"] = 10000 * ureg("N/m^2")
+        setup_parameters["load"] = 1000 * ureg("N/m^2")
+        setup_parameters["height"] = 0.3 * ureg("m")
         setup_parameters["length"] = 1 * ureg("m")
         setup_parameters["dim"] = 3 * ureg("")
+        setup_parameters["width"] = 0.3 * ureg("m")  # only relevant for 3D case
+        setup_parameters["num_elements_length"] = 10 * ureg("")
+        setup_parameters["num_elements_height"] = 3 * ureg("")
+        # only relevant for 3D case
+        setup_parameters["num_elements_width"] = 3 * ureg("")
 
         return setup_parameters
 
@@ -106,5 +112,42 @@ class NibelungenExperiment(Experiment):
 
         f = df.fem.Constant(self.mesh, ScalarType(force_vector))
         L = ufl.dot(f, v) * ufl.dx
+
+        return L
+    
+    def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form:
+        """distributed load on top of beam
+
+        Args:
+            v: test function
+
+        Returns:
+            form for force boundary
+
+        """
+
+        # TODO: make this more pretty!!!
+        #       can we use Philipps boundary classes here?
+
+        facet_indices, facet_markers = [], []
+        fdim = self.mesh.topology.dim - 1
+
+        def locator(x):
+            return np.isclose(x[fdim], self.p["height"])
+
+        facets = df.mesh.locate_entities(self.mesh, fdim, locator)
+        facet_indices.append(facets)
+        facet_markers.append(np.full_like(facets, 1))
+        facet_indices = np.hstack(facet_indices).astype(np.int32)
+        facet_markers = np.hstack(facet_markers).astype(np.int32)
+        sorted_facets = np.argsort(facet_indices)
+        facet_tag = df.mesh.meshtags(self.mesh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets])
+
+        _ds = ufl.Measure("ds", domain=self.mesh, subdomain_data=facet_tag)
+
+        force_vector = np.zeros(self.p["dim"])
+        force_vector[-1] = -self.p["load"]
+        T = df.fem.Constant(self.mesh, ScalarType(force_vector))
+        L = ufl.dot(T, v) * _ds(1)
 
         return L
