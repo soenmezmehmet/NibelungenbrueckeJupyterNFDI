@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from copy import deepcopy
 
 import dolfinx as df
 import numpy as np
@@ -12,16 +13,57 @@ from fenicsxconcrete.boundary_conditions.boundary import line_at, point_at
 from fenicsxconcrete.experimental_setup.base_experiment import Experiment
 from fenicsxconcrete.util import Parameters, ureg
 
+from dolfinx import fem, mesh
 
 class NibelungenExperiment(Experiment):
-    def __init__(self, model_path, parameters: dict[str, pint.Quantity]) -> None:
-    
+    def __init__(self, model_path, model_parameters: dict[str, pint.Quantity]) -> None:
+        
+        self.model_parameters = model_parameters
+        self.material_parameters = self.model_parameters["material_parameters"]
+        
+        self.calculate_lame_constants()
+        
+        ##TODO: Modifications
         self.model_path = model_path
         
         default_p = Parameters()
-        default_p.update(parameters)
+        #default_p.update(parameters)
+        #default_p.update(self.material_parameters)
+        
         super().__init__(default_p)
         
+        self.dt = model_parameters["dt"]
+        
+        # Initialize the load
+        self.initial_position = self.model_parameters[
+            "initial_position"
+        ]  # Initial position of the front left wheel of the vehicle
+        self.current_position = deepcopy(
+            self.initial_position
+        )  # Current position of the front left wheel of the vehicle
+        self.historic_position = [
+            self.current_position[2]
+        ]  # Historic X position of the front left wheel of the vehicle
+        self.speed = self.model_parameters["speed"]  # Speed of the vehicle
+        self.length_vehicle = self.model_parameters["length"]  # Length of the vehicle
+        self.width_vehicle = self.model_parameters["width"]  # Width of the vehicle
+        self.load_value = (
+            self.model_parameters["mass"] * self.model_parameters["g"] / (self.length_vehicle * self.width_vehicle)
+        )  # Load of the vehicle per surface unit
+        self.length_road = self.model_parameters["length_road"]  # Length of the road
+        self.width_road = self.model_parameters["width_road"]  # Width of the road
+
+        assert (
+            self.length_vehicle < self.length_road
+        ), "The length of the vehicle is bigger than the length of the road"
+        assert self.width_vehicle < self.width_road, "The width of the vehicle is bigger than the width of the road"
+        assert (
+            self.initial_position[0] > -self.width_road / 2
+        ), "The initial position of the vehicle is outside the road width (left)"
+        assert (
+            self.initial_position[0] + self.width_vehicle < self.width_road / 2
+        ), "The initial position of the vehicle is outside the road width (right)"
+
         
     def setup(self):
         try:
@@ -34,7 +76,7 @@ class NibelungenExperiment(Experiment):
     def default_parameters() -> dict[str, pint.Quantity]:
         setup_parameters = {}
         setup_parameters["load"] = 1000 * ureg("N/m^2")
-        setup_parameters["height"] = 0.3 * ureg("m")
+        setup_parameters["height"] = 0.3 * ureg("m")    #TODO:
         setup_parameters["length"] = 1 * ureg("m")
         setup_parameters["dim"] = 3 * ureg("")
         setup_parameters["width"] = 0.3 * ureg("m")  # only relevant for 3D case
@@ -44,6 +86,29 @@ class NibelungenExperiment(Experiment):
         setup_parameters["num_elements_width"] = 3 * ureg("")
 
         return setup_parameters
+    
+    @staticmethod
+    def _get_default_parameters():
+        """Get the default parameters for the line test load generator."""
+        default_parameters = {
+            "model_name": "displacements",
+            "paraview_output": False,
+            "paraview_output_path": "output/paraview",
+            "material_parameters": {"rho": 1.0, "mu": 1, "lambda": 1.25},
+            "tension_z": 0.0,
+            "mass": 1000,
+            "g": 9.81,
+            "initial_position": [0.0, 0.0, 0.0],
+            "speed": 1.0,
+            "length": 1.0,
+            "width": 1.0,
+            "length_road": 10.0,
+            "width_road": 10.0,
+            "dt": 1.0,
+            "boundary_conditions": [{"model": "clamped_boundary", "side_coord": 0.0, "coord": 0}],
+        }
+
+        return default_parameters
 
     
     def create_displacement_boundary(self, V) -> list:
@@ -115,8 +180,9 @@ class NibelungenExperiment(Experiment):
 
         return L
     
-    def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form:
-        """distributed load on top of beam
+    
+    def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form: ## TODO: Delete v!?
+        """moving load
 
         Args:
             v: test function
@@ -125,29 +191,124 @@ class NibelungenExperiment(Experiment):
             form for force boundary
 
         """
+        
+        i = 0
+        converged = False
+        while not converged:
+            self.evaluate_load()
 
-        # TODO: make this more pretty!!!
-        #       can we use Philipps boundary classes here?
-
-        facet_indices, facet_markers = [], []
-        fdim = self.mesh.topology.dim - 1
-
-        def locator(x):
-            return np.isclose(x[fdim], self.p["height"])
-
-        facets = df.mesh.locate_entities(self.mesh, fdim, locator)
-        facet_indices.append(facets)
-        facet_markers.append(np.full_like(facets, 1))
-        facet_indices = np.hstack(facet_indices).astype(np.int32)
-        facet_markers = np.hstack(facet_markers).astype(np.int32)
-        sorted_facets = np.argsort(facet_indices)
-        facet_tag = df.mesh.meshtags(self.mesh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets])
-
-        _ds = ufl.Measure("ds", domain=self.mesh, subdomain_data=facet_tag)
-
-        force_vector = np.zeros(self.p["dim"])
-        force_vector[-1] = -self.p["load"]
-        T = df.fem.Constant(self.mesh, ScalarType(force_vector))
-        L = ufl.dot(T, v) * _ds(1)
-
+            f = fem.Constant(self.mesh, ScalarType((0, -self.load_value, 0)))
+            
+            
+            if self.model_parameters["tension_z"] != 0.0:
+                T = fem.Constant(self.mesh, ScalarType((0, 0, self.model_parameters["tension_z"])))
+                ds = ufl.Measure("ds", domain=self.mesh)
+                L = ufl.dot(T, v) * ds + ufl.dot(f, v) * self.ds_load(1)
+            
+            else:
+                L = ufl.dot(f, v) * self.ds_load(1)
+                
+                
+            
+            converged = self.advance_load(self.dt)
+            i += 1
+            
         return L
+    
+    def calculate_lame_constants(self):
+        """Calculate the Lame constants for the line test load generator."""
+        E_modulus = self.material_parameters["E"]
+        nu = self.material_parameters["nu"]
+        self.material_parameters["lambda"] = (E_modulus * nu) / ((1 + nu) * (1 - 2 * nu))
+        self.material_parameters["mu"] = E_modulus / (2 * (1 + nu))
+        
+        
+    def advance_load(self, dt):
+        """Advance the load for the line test load generator."""
+        self.current_position[2] += self.speed * dt
+        self.historic_position.append(self.current_position[2])
+        # self.evaluate_load()
+
+        return self.current_position[2] > self.length_road + self.length_vehicle
+
+    def evaluate_load(self):
+        """Evaluate the load for the line test load generator."""
+
+        # Apply local load (surface force) in subdomain
+        load_subdomain = LoadSubDomain(
+            corner=self.current_position, length=self.length_vehicle, width=self.width_vehicle
+        )
+        subdomain = mesh.locate_entities(self.mesh, self.mesh.topology.dim - 1, marker=load_subdomain.inside)
+        subdomain_values = np.full_like(subdomain, 1)
+        facet_tags = mesh.meshtags(self.mesh, self.mesh.topology.dim - 1, subdomain, subdomain_values)
+        self.ds_load = ufl.Measure("ds", domain=self.mesh, subdomain_data=facet_tags)
+
+
+
+
+# Define subdomain where the load should be applied
+class LoadSubDomain:
+    def __init__(self, corner, length, width):
+        self.corner = corner
+        self.length = length
+        self.width = width
+
+    def inside(self, x):
+        return np.logical_and(
+            np.logical_and(
+                np.logical_and(
+                    np.logical_and(x[0] > self.corner[0], x[0] < self.corner[0] + self.width), x[2] < self.corner[2]
+                ),
+                x[2] > self.corner[2] - self.length,
+            ),
+            np.isclose(x[1], self.corner[1]),
+        )
+
+
+
+
+#%%
+
+if __name__ == "__main__":
+    
+    model_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh'
+    
+    model_parameters = {'model_name': 'displacements',
+     'df_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_df_output.csv',
+     'meta_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_meta_output.json',
+     'MKP_meta_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_meta_output.json',
+     'MKP_translated_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_translated.json',
+     'virtual_sensor_added_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/virtual_sensor_added_translated.json',
+     'cache_path': '',
+     'paraview_output': True,
+     'paraview_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview',
+     'material_parameters': {'E': 40000000000000.0, 'nu': 0.2, 'rho': 2350},
+     'tension_z': 0.0,
+     'mass': 50000.0,
+     'g': 9.81,
+     'initial_position': [0.0, 0.0, 0.0],
+     'speed': 1.0,
+     'length': 7.5,
+     'width': 2.5,
+     'height': 6.5,
+     'length_road': 95.0,
+     'width_road': 14.0,
+     'thickness_deck': 0.2,
+     'dt': 1.0,
+     'reference_temperature': 300,
+     'temperature_coefficient': 1e-05,
+     'temperature_alpha': 1e-05,
+     'temperature_difference': 5.0,
+     'reference_height': -2.5,
+     'boundary_conditions': {'bc1': {'model': 'clamped_edge',
+       'side_coord_1': 0.0,
+       'coord_1': 2,
+       'side_coord_2': 0.0,
+       'coord_2': 1},
+      'bc2': {'model': 'clamped_edge',
+       'side_coord_1': 95.185,
+       'coord_1': 2,
+       'side_coord_2': 0.0,
+       'coord_2': 1}}} 
+    
+    nb = NibelungenExperiment(model_path, model_parameters)

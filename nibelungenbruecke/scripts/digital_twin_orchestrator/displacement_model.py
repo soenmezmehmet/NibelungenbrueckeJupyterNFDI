@@ -16,6 +16,7 @@ class DisplacementModel(BaseModel):
     def __init__(self, model_path: str, model_parameters: dict, dt_path: str):
         super().__init__(model_path, model_parameters)
         
+        self.model_parameters = model_parameters
         self.material_parameters = self.model_parameters["material_parameters"]
         self.default_p = self._get_default_parameters()
         self.dt_path = dt_path
@@ -25,8 +26,10 @@ class DisplacementModel(BaseModel):
         pass
     
     def GenerateModel(self):
-        self.experiment = NibelungenExperiment(self.model_path, self.material_parameters)
-        self.default_p.update(self.experiment.default_parameters())
+        
+        self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
+        #self.experiment = NibelungenExperiment(self.model_path, self.material_parameters)
+        self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
         self.problem = LinearElasticity(self.experiment, self.default_p)
         
     def GenerateData(self):
@@ -132,4 +135,49 @@ class DisplacementModel(BaseModel):
  
     
 if __name__ == "__main__":
+    
+    model_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh'
+    
+    model_parameters = {'model_name': 'displacements',
+     'df_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_df_output.csv',
+     'meta_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_meta_output.json',
+     'MKP_meta_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_meta_output.json',
+     'MKP_translated_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_translated.json',
+     'virtual_sensor_added_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/virtual_sensor_added_translated.json',
+     'cache_path': '',
+     'paraview_output': True,
+     'paraview_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview',
+     'material_parameters': {'E': 40000000000000.0, 'nu': 0.2, 'rho': 2350},
+     'tension_z': 0.0,
+     'mass': 50000.0,
+     'g': 9.81,
+     'initial_position': [0.0, 0.0, 0.0],
+     'speed': 1.0,
+     'length': 7.5,
+     'width': 2.5,
+     'height': 6.5,
+     'length_road': 95.0,
+     'width_road': 14.0,
+     'thickness_deck': 0.2,
+     'dt': 1.0,
+     'reference_temperature': 300,
+     'temperature_coefficient': 1e-05,
+     'temperature_alpha': 1e-05,
+     'temperature_difference': 5.0,
+     'reference_height': -2.5,
+     'boundary_conditions': {'bc1': {'model': 'clamped_edge',
+       'side_coord_1': 0.0,
+       'coord_1': 2,
+       'side_coord_2': 0.0,
+       'coord_2': 1},
+      'bc2': {'model': 'clamped_edge',
+       'side_coord_1': 95.185,
+       'coord_1': 2,
+       'side_coord_2': 0.0,
+       'coord_2': 1}}}
+    
+    dt_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_parameters.json'
+    
+    
     dm = DisplacementModel(model_path, model_parameters, dt_path)
+    dm.solve()
