@@ -3,7 +3,7 @@ from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseM
 import dolfinx as df
 import json
 from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
-from fenicsxconcrete.finite_element_problem.linear_elasticity import LinearElasticity
+from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
 from fenicsxconcrete.util import ureg
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
@@ -30,7 +30,7 @@ class DisplacementModel(BaseModel):
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
         #self.experiment = NibelungenExperiment(self.model_path, self.material_parameters)
         self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
-        self.problem = LinearElasticity(self.experiment, self.default_p)
+        self.problem = LinearElasticityNibelungenbrueckeDemonstrator(self.experiment, self.default_p)
         
     def GenerateData(self):
         """Generate data based on the model parameters."""
@@ -46,7 +46,7 @@ class DisplacementModel(BaseModel):
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
         self.problem.fields.temperature = self.problem.fields.displacement #!!
-        self.problem.solve()
+        self.problem.dynamic_solve()        ##TODO: change the name!
 
         translator.save_to_MKP(self.api_dataFrame)
         translator.save_virtual_sensor(self.problem)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
      'length_road': 95.0,
      'width_road': 14.0,
      'thickness_deck': 0.2,
-     'dt': 1.0,
+     'dt': 30.0,
      'reference_temperature': 300,
      'temperature_coefficient': 1e-05,
      'temperature_alpha': 1e-05,

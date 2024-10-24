@@ -52,6 +52,8 @@ class NibelungenExperiment(Experiment):
         )  # Load of the vehicle per surface unit
         self.length_road = self.model_parameters["length_road"]  # Length of the road
         self.width_road = self.model_parameters["width_road"]  # Width of the road
+        
+        self.converged = False
 
         assert (
             self.length_vehicle < self.length_road
@@ -104,7 +106,7 @@ class NibelungenExperiment(Experiment):
             "width": 1.0,
             "length_road": 10.0,
             "width_road": 10.0,
-            "dt": 1.0,
+            "dt": 30.0,
             "boundary_conditions": [{"model": "clamped_boundary", "side_coord": 0.0, "coord": 0}],
         }
 
@@ -180,7 +182,7 @@ class NibelungenExperiment(Experiment):
 
         return L
     
-    
+#%%   
     def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form: ## TODO: Delete v!?
         """moving load
 
@@ -193,28 +195,15 @@ class NibelungenExperiment(Experiment):
         """
         
         i = 0
-        converged = False
-        while not converged:
+        if not self.converged:
             self.evaluate_load()
-
-            f = fem.Constant(self.mesh, ScalarType((0, -self.load_value, 0)))
-            
-            
-            if self.model_parameters["tension_z"] != 0.0:
-                T = fem.Constant(self.mesh, ScalarType((0, 0, self.model_parameters["tension_z"])))
-                ds = ufl.Measure("ds", domain=self.mesh)
-                L = ufl.dot(T, v) * ds + ufl.dot(f, v) * self.ds_load(1)
-            
-            else:
-                L = ufl.dot(f, v) * self.ds_load(1)
                 
-                
-            
-            converged = self.advance_load(self.dt)
+            self.converged = self.advance_load(self.dt)
             i += 1
             
-        return L
-    
+        return self.ds_load
+
+#%%    
     def calculate_lame_constants(self):
         """Calculate the Lame constants for the line test load generator."""
         E_modulus = self.material_parameters["E"]
@@ -294,7 +283,7 @@ if __name__ == "__main__":
      'length_road': 95.0,
      'width_road': 14.0,
      'thickness_deck': 0.2,
-     'dt': 1.0,
+     'dt': 30.0,
      'reference_temperature': 300,
      'temperature_coefficient': 1e-05,
      'temperature_alpha': 1e-05,
