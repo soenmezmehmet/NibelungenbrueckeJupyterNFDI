@@ -44,7 +44,7 @@ if __name__ == "__main__":
     model_to_run = "Displacement_2"
     #input_value=[round(2.0*10**11, 1), round(2.7*10**11, 1), round(3.4*10**11, 1), round(4.0*10**11, 1)]
     input_value=round(2.0*10**11, 1)
-    orchestrator.run(input_value, model_to_run)
+    orchestrator.run(input_value, model_to_run)     ##TODO: rho should be the one changing!
     
     #import os
     #print(os.getcwd())

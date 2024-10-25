@@ -20,7 +20,7 @@ class DisplacementModel(BaseModel):
         self.material_parameters = self.model_parameters["material_parameters"]
         self.default_p = self._get_default_parameters()
         self.dt_path = dt_path
-        self.vs_path = self.model_parameters["material_parameters"]
+        self.vs_path = self.model_parameters["virtual_sensor_added_output_path"] ##TODO: !!
         
     def LoadGeometry(self):
         pass
@@ -79,7 +79,7 @@ class DisplacementModel(BaseModel):
         # currently, only updates E value
         #TODO: Make this part more automated/flexible!  
         if isinstance(sensor_input, (int, float)):
-            dt_params[0]["parameters"]["E"] = sensor_input
+            dt_params[0]["parameters"]["E"] = sensor_input    ##TODO: Change to rho!!
             
             with open(self.dt_path, 'w') as file:
                 json.dump(dt_params, file, indent=4)
@@ -134,7 +134,7 @@ class DisplacementModel(BaseModel):
         return json_path
  
     
-if __name__ == "__main__":
+if __name__ == "__main__": 
     
     model_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh'
     
@@ -181,3 +181,78 @@ if __name__ == "__main__":
     
     dm = DisplacementModel(model_path, model_parameters, dt_path)
     dm.solve()
+
+#%%
+# =============================================================================
+# import pickle
+# import numpy as np
+# 
+# displacement_function = dm.problem.fields.displacement
+# displacement_values = displacement_function.x.array[:]
+# mesh_coordinates = dm.problem.mesh.geometry.x[:] 
+# 
+# data_to_store = {
+#     "displacement_values": displacement_values,
+#     "mesh_coordinates": mesh_coordinates,
+#     "mesh_topology": dm.problem.mesh.topology.cell_type,
+# 
+# }
+# 
+# with open("test.pkl", "wb") as f:
+#     pickle.dump(data_to_store, f)
+# 
+# print("Deflected model saved successfully.")
+# 
+# #%% Upload part!!
+# with open("test.pkl", "rb") as f:
+#     stored_data = pickle.load(f)
+# 
+# # Access stored values
+# displacement_values = stored_data["displacement_values"]
+# mesh_coordinates = stored_data["mesh_coordinates"]
+# 
+# #%%
+# 
+# import pickle
+# import numpy as np
+# import dolfinx as df
+# import ufl
+# from mpi4py import MPI
+# from fenicsxconcrete.finite_element_problem.base_material import MaterialProblem, QuadratureFields, SolutionFields
+# 
+# 
+# with open("test.pkl", "rb") as f:
+#     stored_data = pickle.load(f)
+# 
+# 
+# displacement_values = stored_data["displacement_values"]
+# mesh_coordinates = stored_data["mesh_coordinates"]
+# 
+# 
+# mesh_file_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh"  # Replace with your actual mesh file path
+# mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(mesh_file_path, MPI.COMM_WORLD, 0)
+# 
+# 
+# mesh.geometry.x[:, :] = mesh_coordinates
+# 
+# degree = 2 
+# dim = 3  
+# V = df.fem.VectorFunctionSpace(mesh, ("Lagrange", degree))
+# 
+# 
+# displacement_function = df.fem.Function(V)
+# displacement_function.x.array[:] = displacement_values
+# 
+# dm_1 = DisplacementModel(model_path, model_parameters, dt_path)
+# dm_1.GenerateModel()
+# 
+# dm_1.problem.V = V
+# dm_1.problem.fields = SolutionFields(displacement=displacement_function)
+# 
+# dm_1.solve()
+# 
+# dm_1.problem.sensors.get("E_plus_080DU_HSN-o-_Avg1", None).data[0].tolist()
+#    
+# 
+# 
+# =============================================================================
