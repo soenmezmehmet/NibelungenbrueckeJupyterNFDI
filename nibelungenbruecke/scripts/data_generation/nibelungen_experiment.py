@@ -69,8 +69,9 @@ class NibelungenExperiment(Experiment):
         
     def setup(self):
         try:
+            ##TODO: self.mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(self.model_path, MPI.COMM_WORLD, 0)
             self.mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(self.model_path, MPI.COMM_WORLD, 0)
-            
+            pass
         except Exception as e:
             raise Exception(f"An error occurred during mesh setup: {e}")
 

@@ -21,6 +21,7 @@ class DisplacementModel(BaseModel):
         self.default_p = self._get_default_parameters()
         self.dt_path = dt_path
         self.vs_path = self.model_parameters["virtual_sensor_added_output_path"] ##TODO: !!
+        #self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
         
     def LoadGeometry(self):
         pass
@@ -254,5 +255,18 @@ if __name__ == "__main__":
 # dm_1.problem.sensors.get("E_plus_080DU_HSN-o-_Avg1", None).data[0].tolist()
 #    
 # 
+# class NullProblem:
+#     pass
+# 
+# dm_2 = dm_1
+# dm_2.problem = NullProblem()
+# 
+# dm_2.problem.V = V
+# dm_2.problem.fields = SolutionFields(displacement=displacement_function)
+# 
+# dm_2.solve()
+# 
+# dm_2.problem.sensors.get("E_plus_080DU_HSN-o-_Avg1", None).data[0].tolist()
+#    
 # 
 # =============================================================================
