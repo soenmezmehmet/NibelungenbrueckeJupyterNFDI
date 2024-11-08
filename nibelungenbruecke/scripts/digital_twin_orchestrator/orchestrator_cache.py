@@ -1,5 +1,6 @@
-import pickle
 import os
+import json
+import pickle
 from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
 
 class ObjectCache:
@@ -12,8 +13,15 @@ class ObjectCache:
         self.cache_path = cache_path
         self.model_name = model_name
         try:
+# =============================================================================
+#             with open(self.cache_path, 'rb') as f:
+#                 self.cache_model = pickle.load(f)
+#                 print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
+#                 return self.cache_model
+# =============================================================================
+            
             with open(self.cache_path, 'rb') as f:
-                self.cache_model = pickle.load(f)
+                self.cache_model = json.load(f)
                 print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
                 return self.cache_model
         except FileNotFoundError:
@@ -33,8 +41,11 @@ class ObjectCache:
 
         try:
             # Save (overwrite) the model to the pickle file
-            with open(self.cache_path, 'wb') as f:
-                pickle.dump(model, f)
+            #with open(self.cache_path, 'wb') as f:
+               # pickle.dump(model, f)
+                
+            with open(self.cache_path, 'w') as file:
+                json.dump(model, file)
                 print(f"New model '{self.model_name}' saved successfully.")
                 
             # Update the cache_model attribute

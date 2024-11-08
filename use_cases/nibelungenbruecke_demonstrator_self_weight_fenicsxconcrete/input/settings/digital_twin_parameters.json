@@ -8,7 +8,7 @@
             "E": 200000000000.0,
             "nu": 0.28
         },
-        "path": "Displacement_1.pkl"
+        "path": "Displacement_1.json"
     },
     {
         "name": "Displacement_2",
@@ -19,6 +19,6 @@
             "E": 210000000000.0,
             "nu": 0.28
         },
-        "path": "Displacement_2.pkl"
+        "path": "Displacement_2.json"
     }
 ]
