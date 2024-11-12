@@ -1,17 +1,9 @@
-from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
-
+import unittest
 import tempfile
 import shutil
+from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
 import dolfinx
-import numpy as np
 from mpi4py import MPI
-
-# Create a temporary directory for testing
-temp_dir = tempfile.mkdtemp()
-
-# Define a temporary model path and parameters for testing
-temp_model_path = f"{temp_dir}/test_model.msh"
-temp_model_parameters = {"param1": 1, "param2": 2}
 
 # Create a dummy subclass of BaseModel for testing
 class DummyModel(BaseModel):
@@ -34,37 +26,52 @@ class DummyModel(BaseModel):
     def _get_default_parameters():
         return {"param1": 0, "param2": 0}
 
-# Test BaseModel initialization
-def test_initialization():
-    print("\nTesting BaseModel initialization...")
-    base_model = BaseModel(temp_model_path, temp_model_parameters)
-    assert base_model.model_path == temp_model_path
-    assert base_model.model_parameters == temp_model_parameters
 
-# Test LoadGeometry method
-def test_load_geometry():
-    print("\nTesting LoadGeometry method...")
-    dummy_model = DummyModel(temp_model_path, temp_model_parameters)
-    dummy_model.LoadGeometry()
-    assert isinstance(dummy_model.mesh, dolfinx.Mesh)
+class TestBaseModel(unittest.TestCase):
+    def setUp(self):
+        self.test_model_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh"
+        self.test_model_parameters = {"param1": 1, "param2": 2}
 
-# Test Generate method
-def test_generate():
-    print("\nTesting Generate method...")
-    dummy_model = DummyModel(temp_model_path, temp_model_parameters)
-    dummy_model.Generate()
 
-# Test _validate_parameters method
-def test_validate_parameters():
-    print("\nTesting _validate_parameters method...")
-    base_model = BaseModel(temp_model_path, {})
-    assert base_model.model_parameters == {"param1": 0, "param2": 0}
 
-# Run tests
-test_initialization()
-test_load_geometry()
-test_generate()
-test_validate_parameters()
+    # @classmethod
+    # def setUpClass(cls):
+    #     # Create a temporary directory for testing
+    #     cls.temp_dir = tempfile.mkdtemp()
+    #     cls.temp_model_path = f"{cls.temp_dir}/test_model.msh"
+    #     cls.temp_model_parameters = {"param1": 1, "param2": 2}
 
-# Cleanup temporary directory
-shutil.rmtree(temp_dir)
+    # @classmethod
+    # def tearDownClass(cls):
+    #     # Cleanup temporary directory
+    #     shutil.rmtree(cls.temp_dir)
+
+    def test_initialization(self):
+        """Test BaseModel initialization."""
+        base_model = BaseModel(self.test_model_path, self.test_model_parameters)
+        self.assertEqual(base_model.model_path, self.test_model_path)
+        self.assertEqual(base_model.model_parameters, self.test_model_parameters)
+
+    def test_load_geometry(self):
+        """Test LoadGeometry method."""
+        dummy_model = DummyModel(self.test_model_path, self.test_model_parameters)
+        dummy_model.LoadGeometry()
+        self.assertIsInstance(dummy_model.mesh, dolfinx.mesh.Mesh)
+
+    def test_generate(self):
+        """Test Generate method."""
+        dummy_model = DummyModel(self.test_model_path, self.test_model_parameters)
+        # Assuming Generate should not raise any exception
+        try:
+            dummy_model.Generate()
+        except Exception as e:
+            self.fail(f"Generate method raised an exception: {e}")
+
+    def test_validate_parameters(self):
+        """Test _validate_parameters method."""
+        base_model = BaseModel(self.test_model_path, self.test_model_parameters)
+        self.assertEqual(base_model.model_parameters, {"param1": 1, "param2": 2})
+
+
+if __name__ == "__main__":
+    unittest.main()

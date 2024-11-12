@@ -7,59 +7,13 @@ from unittest.mock import patch, mock_open, MagicMock
 from unittest.mock import Mock
 import json
 import pickle
-
-import sys
-import importlib.util
-from pathlib import Path
-
-class Unpickler:
-    def unpickle(self, path, name):
-        module_path = self._model_addresses(name)
-        
-        # Load the module from the given path
-        spec = importlib.util.spec_from_file_location(name, module_path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
-        spec.loader.exec_module(module)
-        
-        module_directory = str(Path(module_path).parent)
-        if module_directory not in sys.path:
-            sys.path.append(module_directory)
-
-        # Unpickle the object
-        with open(path, 'rb') as file:
-            obj = pickle.load(file)
-        
-        return obj
-    
-    @staticmethod 
-    def _model_addresses(name):
-        # Define how to resolve the module name to its path
-        # For example, map module names to their paths
-        module_paths = {
-            'digital_twin_module': "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/displacement_model.py",
-            'some_model': 'DisplacementModel.py'
-        }
-        return module_paths.get(name)
-#%%
-# =============================================================================
-# if __name__ == "__main__":
-#     UP = Unpickler()
-#     
-#     path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_2.pkl"
-#     name = 'digital_twin_module'
-#     
-#     UP.unpickle(path, name)
-#     print(UP.unpickle(path, name))
-#     
-# =============================================================================
-#%%
+from nibelungenbruecke.scripts.utilities.unpickler import Unpickler
 
 class TestDigitalTwin(unittest.TestCase):
 
     def setUp(self):
         
-        self.model_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh"
+        self.model_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh"
         self.model_parameters =  {
                     "model_name": "displacements",
                     "df_output_path":"../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_df_output.csv",
@@ -119,10 +73,11 @@ class TestDigitalTwin(unittest.TestCase):
                 
         with open(self.dt_path, 'rb') as f:
             set_model = json.load(f)
+        path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
         
         self.assertEqual(dt.cache_model_name, set_model[0]["type"])
         self.assertEqual(dt.cache_object_name, set_model[0]["class"])
-        self.assertEqual(dt.cache_model_path, set_model[0]["path"])
+        self.assertEqual(dt.cache_model_path, path+set_model[0]["path"])
 
 
 if __name__ == "__main__":
