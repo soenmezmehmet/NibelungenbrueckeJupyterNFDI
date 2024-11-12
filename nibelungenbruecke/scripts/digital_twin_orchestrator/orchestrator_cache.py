@@ -42,13 +42,3 @@ class ObjectCache:
             
         except Exception as e:
             print(f"An error occurred while saving the model: {e}")
-
-
-#%%
-if __name__ == "__main__":
-    path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_2.pkl"
-    
-    model_name = "Displacement_1"
-        
-    Model = ObjectCache()
-    Model.load_cache(path, model_name)
