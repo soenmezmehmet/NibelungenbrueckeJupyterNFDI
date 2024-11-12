@@ -9,7 +9,7 @@ from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model impo
 class TestObjectCache(unittest.TestCase):
 
     def setUp(self):
-        self.cache_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_1.pkl"
+        self.cache_path = "../../../NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_1.pkl"
         self.model_name = "Displacement_1"
         self.test_model = DisplacementModel
         self.object_cache = ObjectCache()
@@ -22,12 +22,12 @@ class TestObjectCache(unittest.TestCase):
         self.assertEqual(self.object_cache.model_name, self.model_name)
 
     def test_load_cache_file_not_found(self):
-        self.object_cache.cache_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/wrong_path.pkl"
+        self.object_cache.cache_path = "../../../NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/wrong_path.pkl"
         model = self.object_cache.load_cache(self.cache_path, self.model_name)
         self.assertIsNone(model)
 
     def test_load_cache_unpickling_error(self):
-        self.object_cache.cache_path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/not_pickle"
+        self.object_cache.cache_path = "../../../NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/not_pickle"
         model = self.object_cache.load_cache(self.cache_path, self.model_name)
         self.assertIsNone(model)
 
