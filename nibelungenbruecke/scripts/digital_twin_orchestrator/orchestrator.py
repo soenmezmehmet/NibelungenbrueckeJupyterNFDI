@@ -1,4 +1,3 @@
-#from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
 from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
 import json
 
@@ -7,8 +6,6 @@ class Orchestrator:
         self.updated = False
         with open(model_parameters_path, 'r') as file:
             self.orchestrator_parameters = json.load(file)
-            
-        #self.activated_models = {}
         
     def predict_dt(self, digital_twin, input_value):
         return digital_twin.predict(input_value)
@@ -33,16 +30,3 @@ class Orchestrator:
         prediction = self.predict_dt(digital_twin, input_value)
         #prediction = self.predict_last_week(digital_twin, input_value)
         print("Prediction:", prediction) #TODO
-        
-#%%
-if __name__ == "__main__":
-    path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
-    #with open(path, 'r') as file:
-    #    a = json.load(file)
-    
-    orchestrator = Orchestrator(path)
-    orchestrator.run()
-    
-    #import os
-    #print(os.getcwd())
-    #print(os.path.dirname(os.path.abspath(__file__)))

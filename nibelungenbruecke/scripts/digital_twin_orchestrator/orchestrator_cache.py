@@ -1,5 +1,5 @@
-import pickle
 import os
+import pickle
 from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
 
 class ObjectCache:
@@ -46,45 +46,9 @@ class ObjectCache:
 
 #%%
 if __name__ == "__main__":
-    path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_1.pkl"
+    path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/nibelungenbruecke/scripts/digital_twin_orchestrator/Displacement_2.pkl"
     
     model_name = "Displacement_1"
         
     Model = ObjectCache()
     Model.load_cache(path, model_name)
-
-
-#%%
-# import pickle
-# import os
-
-# class ObjectCache:
-#     def __init__(self, cache_file):
-#         self.cache_file = cache_file
-#         self.cache = self.load_cache()
-
-#     def load_cache(self):
-#         if os.path.exists(self.cache_file):
-#             try:
-#                 if self.cache_file:
-#                     with open(self.cache_file, 'rb') as f:
-#                         return pickle.load(f)
-#             except (pickle.PickleError, IOError) as e:
-#                 print(f"Error loading cache: {e}")
-#         return {}
-
-#     def save_cache(self):
-#         try:
-#             with open(self.cache_file, 'wb') as f:
-#                 pickle.dump(self.cache, f)
-#         except (pickle.PickleError, IOError) as e:
-#             print(f"Error saving cache: {e}")
-
-#     def get_object(self, model_name, object_name):
-#         key = (model_name, object_name)
-#         return self.cache.get(key)
-
-#     def add_object(self, model_name, object_name, obj):
-#         key = (model_name, object_name)
-#         self.cache[key] = obj
-#         self.save_cache()
