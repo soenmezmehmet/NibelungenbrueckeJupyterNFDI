@@ -30,3 +30,10 @@ class Orchestrator:
         prediction = self.predict_dt(digital_twin, input_value)
         #prediction = self.predict_last_week(digital_twin, input_value)
         print("Prediction:", prediction) #TODO
+
+#%%
+if __name__ == "__main__":
+    path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+   
+    orchestrator = Orchestrator(path)
+    orchestrator.run()

@@ -41,7 +41,7 @@ class DisplacementModel(BaseModel):
         translator.translator_to_sensor()
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
-        self.problem.fields.temperature = self.problem.fields.displacement #!!
+        self.problem.fields.temperature = self.problem.fields.displacement #Not correct!!
         self.problem.solve()
 
         translator.save_to_MKP(self.api_dataFrame)

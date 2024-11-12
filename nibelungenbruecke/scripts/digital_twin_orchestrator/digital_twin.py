@@ -50,7 +50,7 @@ class DigitalTwin:
                     digital_twin_model = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
                     self.cache_object.cache_model =  digital_twin_model 
                              
-            self.cache_object.update_store(digital_twin_model)
+            self.cache_object.update_store(digital_twin_model)      ##TODO: triggered on demand!!
                     
             if digital_twin_model.update_input(input_value):
                 digital_twin_model.solve()
