@@ -18,7 +18,7 @@ class DisplacementModel(BaseModel):
         self.material_parameters = self.model_parameters["material_parameters"]
         self.default_p = self._get_default_parameters()
         self.dt_path = dt_path
-        self.vs_path = self.model_parameters["material_parameters"]
+        #self.vs_path = self.model_parameters["material_parameters"]
         
     def LoadGeometry(self):
         pass
@@ -31,7 +31,7 @@ class DisplacementModel(BaseModel):
     def GenerateData(self):
         """Generate data based on the model parameters."""
 
-        self.api_request = API_Request()
+        self.api_request = API_Request(self.model_parameters["secret_path"])
         self.api_dataFrame = self.api_request.fetch_data()
 
         metadata_saver = MetadataSaver(self.model_parameters, self.api_dataFrame)
