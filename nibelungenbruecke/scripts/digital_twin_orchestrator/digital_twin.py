@@ -1,5 +1,6 @@
 import sys
 import json
+import copy
 import pickle
 import importlib
 from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
@@ -63,14 +64,14 @@ class DigitalTwin:
                     
                 else:
                     digital_twin_model = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
-                    self.cache_object.cache_model =  digital_twin_model 
-                             
-            #self.cache_object.update_store(digital_twin_model)      ##TODO: triggered on demand!!
+                    self.cache_object.cache_model =  digital_twin_model
                     
+            copy_digital_twin_model = copy.deepcopy(digital_twin_model)
+             
             if digital_twin_model.update_input(input_value):
                 digital_twin_model.solve()
                 if self.store_update():
-                    self.cache_object.update_store(digital_twin_model)
+                    self.cache_object.update_store(copy_digital_twin_model)
                 return digital_twin_model.export_output()
             
         return None

@@ -41,7 +41,6 @@ class DisplacementModel(BaseModel):
         translator.translator_to_sensor()
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
-        self.problem.fields.temperature = self.problem.fields.displacement ## TODO: Not correct!!
         self.problem.solve()
 
         translator.save_to_MKP(self.api_dataFrame)
@@ -99,8 +98,8 @@ class DisplacementModel(BaseModel):
         #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HSS-m-_Avg1']['displacements'][-1][0]
         self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
         
-    def export_output(self): #TODO: json_path as a input parameters!!
-        json_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/output_data.json" #TODO: move to json file
+    def export_output(self):
+        json_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/output_data.json" #TODO: move to the json file
         
         try:
             with open(json_path, 'r') as file:
