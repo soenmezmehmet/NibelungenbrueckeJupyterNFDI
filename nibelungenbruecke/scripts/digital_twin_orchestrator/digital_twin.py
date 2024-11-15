@@ -26,7 +26,22 @@ class DigitalTwin:
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
                 return True
-        raise ValueError(f"'{model_to_run}' not found in the defined models.")
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")
+        
+        
+    def store_update(self):            
+        measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]
+        with open(measured_vs_path, 'r') as f:
+            sensor_measurement = json.load(f)
+            
+        triggered = False    
+        for i in sensor_measurement["virtual_sensors"].keys():
+            if sensor_measurement["virtual_sensors"][i]["displacements"][-1] == sensor_measurement["virtual_sensors"][i]["displacements"][-2]:
+                triggered = False
+            else:
+                triggered = True
+                
+        return triggered
             
     def predict(self, input_value):      
         if self.set_model():
@@ -50,10 +65,12 @@ class DigitalTwin:
                     digital_twin_model = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
                     self.cache_object.cache_model =  digital_twin_model 
                              
-            self.cache_object.update_store(digital_twin_model)      ##TODO: triggered on demand!!
+            #self.cache_object.update_store(digital_twin_model)      ##TODO: triggered on demand!!
                     
             if digital_twin_model.update_input(input_value):
                 digital_twin_model.solve()
+                if self.store_update():
+                    self.cache_object.update_store(digital_twin_model)
                 return digital_twin_model.export_output()
             
         return None
