@@ -1,5 +1,4 @@
 from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
-#from base_model import BaseModel
 import dolfinx as df
 import json
 from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
@@ -10,6 +9,7 @@ from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
 import importlib
 import time
+import pickle
 
 class DisplacementModel(BaseModel):
     
@@ -36,7 +36,7 @@ class DisplacementModel(BaseModel):
     def GenerateData(self):
         """Generate data based on the model parameters."""
 
-        self.api_request = API_Request()
+        self.api_request = API_Request(self.model_parameters["secret_path"])
         self.api_dataFrame = self.api_request.fetch_data()
 
         metadata_saver = MetadataSaver(self.model_parameters, self.api_dataFrame)
@@ -46,7 +46,7 @@ class DisplacementModel(BaseModel):
         translator.translator_to_sensor()
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
-        self.problem.fields.temperature = self.problem.fields.displacement #!!
+        ## self.problem.fields.temperature = self.problem.fields.displacement #!!
         self.problem.dynamic_solve()        ##TODO: change the name!
 
         translator.save_to_MKP(self.api_dataFrame)
@@ -133,7 +133,35 @@ class DisplacementModel(BaseModel):
             json.dump(output_data, file)
             
         return json_path
- 
+    
+    def field_assignment(self, data):
+        for i in data.keys():
+            if i == "displacement":
+                self.problem.fields.displacement = data[i]
+            elif i == "temperature":
+                self.problem.fields.temperature = data[i]
+                
+#%%
+    
+# =============================================================================
+#     def field_data_storer(self, path):
+#         data_to_store = {}
+# 
+#         for i in dir(dm.problem.fields):
+#             if not i.startswith("_"):
+#                 k = getattr(dm.problem.fields, i)
+#                 if k:
+#                     data_to_store[i] = k.x.array[:]
+#         try:
+#             pkl_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + path
+#             with open(f"{pkl_path}_params.pkl", "wb") as f:
+#                 pickle.dump(data_to_store, f)
+#                 
+#         except Exception as e:
+#             print(f"An error occurred while saving the model: {e}")
+# =============================================================================
+
+#%%
     
 if __name__ == "__main__": 
     

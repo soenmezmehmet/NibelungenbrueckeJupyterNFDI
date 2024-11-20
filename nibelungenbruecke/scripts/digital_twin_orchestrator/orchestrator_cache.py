@@ -45,7 +45,7 @@ class ObjectCache:
                # pickle.dump(model, f)
                 
             with open(self.cache_path, 'w') as file:
-                json.dump(model, file)
+                json.dump(model, file, indent=4)
                 print(f"New model '{self.model_name}' saved successfully.")
                 
             # Update the cache_model attribute

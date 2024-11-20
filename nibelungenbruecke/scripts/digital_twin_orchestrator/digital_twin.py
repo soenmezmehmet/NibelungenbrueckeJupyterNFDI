@@ -9,7 +9,6 @@ from mpi4py import MPI
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache import ObjectCache
 from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
-from fenicsxconcrete.finite_element_problem.base_material import MaterialProblem, QuadratureFields, SolutionFields
 
 class DigitalTwin:
     def __init__(self, model_parameters_path: str, model_to_run = "Displacement_1"):    
@@ -21,31 +20,35 @@ class DigitalTwin:
         self.dt_path = self.orchestrator_parameters["generation_models_list"][0]["digital_twin_parameters_path"]
         
         self.displacement_model = DisplacementModel(self.model_path, self.model_parameters, self.dt_path)
-        #self.displacement_model.GenerateModel()
 
         self.model_to_run = model_to_run
         #self.load_models()
         self.cache_object = ObjectCache()
+        
 #%%        
 # =============================================================================
 #     def load_models(self):
 #         with open(self.dt_path, 'r') as json_file:
 #             self.models = json.load(json_file)
-#         
 # =============================================================================
+        
 #%%
     def set_model(self):
         for model_info in self.models:
             if model_info["name"] == self.model_to_run:
                 self.cache_model_name = model_info["type"]
                 self.cache_object_name = model_info["class"]
-                self.cache_model_path = model_info["path"]
+                rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
+                self.cache_model_path = rel_path + model_info["path"]
                 return True
-        return False    #TODO: Currently does not create new models if the model_to_run parametes is not in the dt_path json file!!
-            
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")
+ 
+ #%%           
     def uploader(self): #TODO: Make it with for loop!!
         try:
-            with open(f"{self.model_to_run}_params.pkl", "rb") as f:
+            rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
+            with open(f"{rel_path}{self.model_to_run}_params.pkl", "rb") as f:
+            #with open(f"{self.model_to_run}_params.pkl", "rb") as f:
                 self.model_params = pickle.load(f)                
                 return self.model_params
         
@@ -67,23 +70,27 @@ class DigitalTwin:
 #             dm.solve()
 # =============================================================================
 #%%    
-    def extracter(self, dm):
-        displacement_values = self.model_params["displacement"]
-        temperature_values = self.model_params["temperature"]
-        #mesh_coordinates = self.model_params["mesh_coordinates"]
-        
-        degree = 2
-        dim = 3
-        V = df.fem.VectorFunctionSpace(dm.problem.mesh, ("Lagrange", degree))
-        
-        displacement_function = df.fem.Function(V)
-        displacement_function.x.array[:] = displacement_values
-        
-        #dm.problem.mesh = self.mesh
-        dm.problem.V = V
-        dm.problem.fields = SolutionFields(displacement=displacement_function)
-        #dm.solve()
-        return dm
+# =============================================================================
+#     def extracter(self, dm):
+#         displacement_values = self.model_params["displacement"]
+#         temperature_values = self.model_params["temperature"]
+#         #mesh_coordinates = self.model_params["mesh_coordinates"]
+#         
+#         degree = 2
+#         dim = 3
+#         V = df.fem.VectorFunctionSpace(dm.problem.mesh, ("Lagrange", degree))
+#         
+#         displacement_function = df.fem.Function(V)
+#         displacement_function.x.array[:] = displacement_values
+#         
+#         #dm.problem.mesh = self.mesh
+#         dm.problem.V = V
+#         #dm.problem.fields = SolutionFields(displacement=displacement_function)
+#         #dm.solve()
+#         return dm
+# =============================================================================
+    
+#%%
     
     def storer(self, dm):
         
@@ -95,7 +102,8 @@ class DigitalTwin:
                 if k:
                     data_to_store[i] = k.x.array[:]
         try:
-            with open(f"{self.model_to_run}_params.pkl", "wb") as f:
+            pkl_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + self.model_to_run
+            with open(f"{pkl_path}_params.pkl", "wb") as f:
                 pickle.dump(data_to_store, f)
                 
         except Exception as e:
@@ -110,7 +118,8 @@ class DigitalTwin:
             self.cache_object.cache_model['generation_models_list'][1]['model_parameters']["material_parameters"]["E"] = sensor_input
         else:
             pass
-            
+    
+    #%%        
     def predict(self, input_value):      
         if self.set_model():
             
@@ -135,7 +144,8 @@ class DigitalTwin:
             self.update_input(input_value)
                         
             self.cache_object.update_store(parameters)
-            
+
+#%%            
 # =============================================================================
 #             self.model_path = self.cache_object.cache_model["model_path"]
 #             self.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
@@ -144,16 +154,21 @@ class DigitalTwin:
 #             digital_twin_model = DisplacementModel(self.model_path, self.model_parameters, self.dt_path)
 #             digital_twin_model.GenerateModel()
 # =============================================================================
-            
+#%%            
             self.displacement_model.model_path = self.cache_object.cache_model["model_path"]
             self.displacement_model.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
             self.displacement_model.dt_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
+            
             self.displacement_model.GenerateModel()
             
             digital_twin_model = self.displacement_model
             
+            self.storer(digital_twin_model)
+            
+            ##LinearElasticityJob
             self.uploader()
-            self.extracter(digital_twin_model)
+            #self.extracter(digital_twin_model)
+            digital_twin_model.field_assignment(self.model_params)
 
             digital_twin_model.solve()
             self.storer(digital_twin_model)
@@ -161,7 +176,20 @@ class DigitalTwin:
             return digital_twin_model.export_output(self.model_to_run)
             
         return None     #TODO: One possible consequence of the above TODO part. Could be enhanced by instead of returning None, create a new object/model with some default parameters
-
+    
+    def store_update(self):            
+        measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]
+        with open(measured_vs_path, 'r') as f:
+            sensor_measurement = json.load(f)
+            
+        triggered = False    
+        for i in sensor_measurement["virtual_sensors"].keys():
+            if sensor_measurement["virtual_sensors"][i]["displacements"][-1] == sensor_measurement["virtual_sensors"][i]["displacements"][-2]:
+                triggered = False
+            else:
+                triggered = True
+                
+        return triggered
      
 #%%
 
@@ -176,6 +204,8 @@ if __name__ == "__main__":
     input_value=round(2.0*10**11, 1)
     
     dt.predict(input_value)
+
+
     
 #%%    
 # =============================================================================

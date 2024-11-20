@@ -7,7 +7,7 @@ from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import Dig
 class TestOrchestrator(unittest.TestCase):
 
     def setUp(self):
-        self.path = "/home/msoenmez/Desktop/NibelungenbrueckeDemonstrator/use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+        self.path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
         self.model_parameters = {
             "model_path": "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh",
             "output_parameters":{
