@@ -10,7 +10,7 @@ import json
 import h5py
 import math
 from pyproj import Proj, transform
-
+from nibelungenbruecke.scripts.utilities.mesh_point_detector import query_point
 
 
 class API_Request:
@@ -402,7 +402,7 @@ class Translator:
                         "sensor_file": "",
                         "units": "meter",
                         "dimensionality": "[length]",
-                        "where": item["coordinate"]
+                        "where": query_point(item["coordinate"])[0].tolist()
                     }
 
                     if key == "Temp":
