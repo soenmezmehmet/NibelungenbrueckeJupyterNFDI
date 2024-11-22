@@ -29,7 +29,6 @@ class DisplacementModel(BaseModel):
     def GenerateModel(self):
         
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
-        #self.experiment = NibelungenExperiment(self.model_path, self.material_parameters)
         self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
         self.problem = LinearElasticityNibelungenbrueckeDemonstrator(self.experiment, self.default_p)
         
@@ -46,7 +45,6 @@ class DisplacementModel(BaseModel):
         translator.translator_to_sensor()
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
-        ## self.problem.fields.temperature = self.problem.fields.displacement #!!
         self.problem.dynamic_solve()        ##TODO: change the name!
 
         translator.save_to_MKP(self.api_dataFrame)
@@ -71,22 +69,58 @@ class DisplacementModel(BaseModel):
             "nu":0.28 * ureg("")
         }
         return default_parameters
+ 
+#%%    
+# =============================================================================
+#     def update_input(self, sensor_input):
+#         
+#         with open(self.dt_path, 'r') as f:
+#             dt_params = json.load(f)
+#         
+#         # currently, only updates rho value
+#         if isinstance(sensor_input, (int, float)):
+#             dt_params[0]["parameters"]["rho"] = sensor_input
+#             
+#             with open(self.dt_path, 'w') as file:
+#                 json.dump(dt_params, file, indent=4)
+#             return True
+#         else:
+#             return False
+# =============================================================================
+#%%
+
+    def update_parameters(self, updates, target_name=None):
+        """
+        Updates specified parameters in a JSON file.
+        """
+        try:
+            with open(self.dt_path, 'r') as f:
+                dt_params = json.load(f)
     
-    def update_input(self, sensor_input):   ##TODO: Moved to Digital Twin module!
-        
-        with open(self.dt_path, 'r') as f:
-            dt_params = json.load(f)
-        
-        # currently, only updates E value
-        #TODO: Make this part more automated/flexible!  
-        if isinstance(sensor_input, (int, float)):
-            dt_params[0]["parameters"]["E"] = sensor_input    ##TODO: Change to rho!!
+            updated = False
+            model_type_params = None
             
-            with open(self.dt_path, 'w') as file:
-                json.dump(dt_params, file, indent=4)
-            return True
-        else:
+            # Update parameters in matching entries
+            for entry in dt_params:
+                if entry["name"] == target_name:
+                    for key, value in updates.items():
+                        if key in entry["parameters"]:
+                            entry["parameters"][key] = value
+                            model_type_params = entry
+                            updated = True
+   
+            # Save the updated JSON back to the file
+            if updated:
+                with open(self.dt_path, 'w') as file:
+                    json.dump(dt_params, file, indent=4)
+                return True, model_type_params
+            else:
+                return False
+        except Exception as e:
+            print(f"An error occurred: {e}")
             return False
+
+
         
     def solve(self):
 
@@ -140,26 +174,22 @@ class DisplacementModel(BaseModel):
                 self.problem.fields.displacement = data[i]
             elif i == "temperature":
                 self.problem.fields.temperature = data[i]
-                
-#%%
     
-# =============================================================================
-#     def field_data_storer(self, path):
-#         data_to_store = {}
-# 
-#         for i in dir(dm.problem.fields):
-#             if not i.startswith("_"):
-#                 k = getattr(dm.problem.fields, i)
-#                 if k:
-#                     data_to_store[i] = k.x.array[:]
-#         try:
-#             pkl_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + path
-#             with open(f"{pkl_path}_params.pkl", "wb") as f:
-#                 pickle.dump(data_to_store, f)
-#                 
-#         except Exception as e:
-#             print(f"An error occurred while saving the model: {e}")
-# =============================================================================
+    def field_data_storer(self, path):
+        data_to_store = {}
+
+        for i in dir(self.problem.fields):
+            if not i.startswith("_"):
+                k = getattr(self.problem.fields, i)
+                if k:
+                    data_to_store[i] = k.x.array[:]
+        try:
+            pkl_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" + path
+            with open(f"{pkl_path}_params.pkl", "wb") as f:
+                pickle.dump(data_to_store, f)
+                
+        except Exception as e:
+            print(f"An error occurred while saving the model: {e}")
 
 #%%
     
@@ -210,91 +240,3 @@ if __name__ == "__main__":
     
     dm = DisplacementModel(model_path, model_parameters, dt_path)
     dm.solve()
-
-#%%
-# =============================================================================
-# import pickle
-# import numpy as np
-# 
-# displacement_function = dm.problem.fields.displacement
-# displacement_values = displacement_function.x.array[:]
-# mesh_coordinates = dm.problem.mesh.geometry.x[:] 
-# 
-# data_to_store = {
-#     "displacement_values": displacement_values,
-#     "mesh_coordinates": mesh_coordinates,
-#     "mesh_topology": dm.problem.mesh.topology.cell_type,
-# 
-# }
-# 
-# with open("test.pkl", "wb") as f:
-#     pickle.dump(data_to_store, f)
-# 
-# print("Deflected model saved successfully.")
-# 
-# #%% Upload part!!
-# with open("test.pkl", "rb") as f:
-#     stored_data = pickle.load(f)
-# 
-# # Access stored values
-# displacement_values = stored_data["displacement_values"]
-# mesh_coordinates = stored_data["mesh_coordinates"]
-# 
-# #%%
-# 
-# import pickle
-# import numpy as np
-# import dolfinx as df
-# import ufl
-# from mpi4py import MPI
-# from fenicsxconcrete.finite_element_problem.base_material import MaterialProblem, QuadratureFields, SolutionFields
-# 
-# 
-# with open("test.pkl", "rb") as f:
-#     stored_data = pickle.load(f)
-# 
-# 
-# displacement_values = stored_data["displacement_values"]
-# mesh_coordinates = stored_data["mesh_coordinates"]
-# 
-# 
-# mesh_file_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh"  # Replace with your actual mesh file path
-# mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(mesh_file_path, MPI.COMM_WORLD, 0)
-# 
-# 
-# mesh.geometry.x[:, :] = mesh_coordinates
-# 
-# degree = 2 
-# dim = 3  
-# V = df.fem.VectorFunctionSpace(mesh, ("Lagrange", degree))
-# 
-# 
-# displacement_function = df.fem.Function(V)
-# displacement_function.x.array[:] = displacement_values
-# 
-# dm_1 = DisplacementModel(model_path, model_parameters, dt_path)
-# dm_1.GenerateModel()
-# 
-# dm_1.problem.V = V
-# dm_1.problem.fields = SolutionFields(displacement=displacement_function)
-# 
-# dm_1.solve()
-# 
-# dm_1.problem.sensors.get("E_plus_080DU_HSN-o-_Avg1", None).data[0].tolist()
-#    
-# 
-# class NullProblem:
-#     pass
-# 
-# dm_2 = dm_1
-# dm_2.problem = NullProblem()
-# 
-# dm_2.problem.V = V
-# dm_2.problem.fields = SolutionFields(displacement=displacement_function)
-# 
-# dm_2.solve()
-# 
-# dm_2.problem.sensors.get("E_plus_080DU_HSN-o-_Avg1", None).data[0].tolist()
-#    
-# 
-# =============================================================================

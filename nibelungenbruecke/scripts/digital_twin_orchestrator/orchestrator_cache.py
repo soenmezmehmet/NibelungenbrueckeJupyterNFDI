@@ -12,14 +12,7 @@ class ObjectCache:
     def load_cache(self, cache_path, model_name):
         self.cache_path = cache_path
         self.model_name = model_name
-        try:
-# =============================================================================
-#             with open(self.cache_path, 'rb') as f:
-#                 self.cache_model = pickle.load(f)
-#                 print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
-#                 return self.cache_model
-# =============================================================================
-            
+        try:       
             with open(self.cache_path, 'rb') as f:
                 self.cache_model = json.load(f)
                 print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
@@ -40,10 +33,6 @@ class ObjectCache:
             return
 
         try:
-            # Save (overwrite) the model to the pickle file
-            #with open(self.cache_path, 'wb') as f:
-               # pickle.dump(model, f)
-                
             with open(self.cache_path, 'w') as file:
                 json.dump(model, file, indent=4)
                 print(f"New model '{self.model_name}' saved successfully.")
@@ -63,39 +52,3 @@ if __name__ == "__main__":
         
     Model = ObjectCache()
     Model.load_cache(path, model_name)
-
-
-#%%
-# import pickle
-# import os
-
-# class ObjectCache:
-#     def __init__(self, cache_file):
-#         self.cache_file = cache_file
-#         self.cache = self.load_cache()
-
-#     def load_cache(self):
-#         if os.path.exists(self.cache_file):
-#             try:
-#                 if self.cache_file:
-#                     with open(self.cache_file, 'rb') as f:
-#                         return pickle.load(f)
-#             except (pickle.PickleError, IOError) as e:
-#                 print(f"Error loading cache: {e}")
-#         return {}
-
-#     def save_cache(self):
-#         try:
-#             with open(self.cache_file, 'wb') as f:
-#                 pickle.dump(self.cache, f)
-#         except (pickle.PickleError, IOError) as e:
-#             print(f"Error saving cache: {e}")
-
-#     def get_object(self, model_name, object_name):
-#         key = (model_name, object_name)
-#         return self.cache.get(key)
-
-#     def add_object(self, model_name, object_name, obj):
-#         key = (model_name, object_name)
-#         self.cache[key] = obj
-#         self.save_cache()
