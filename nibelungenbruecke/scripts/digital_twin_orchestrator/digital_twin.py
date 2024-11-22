@@ -15,12 +15,15 @@ class DigitalTwin:
     
     def __init__(self, model_parameters_path: dict, model_to_run = "Displacement_1"): 
         self.model_to_run = model_to_run
+
+        
         self.orchestrator_parameters = self._extract_model_parameters(model_parameters_path)
         self._load_models()
         self.cache_object = ObjectCache()
-        self.initial_model = self._initialize_default_model()
+        
+        self.digital_twin_models = {}
     
-    def _extract_model_parameters(self, path):
+    def _extract_model_parameters(self, path):      ##TODO: make this to adapt the older 
         """Load parameters from JSON"""
         
         with open(path, 'r') as file:
@@ -33,12 +36,15 @@ class DigitalTwin:
         digital_twin_model = None
         for i in self._models:
             if i["name"] == self.model_to_run:
-                model_path = self.orchestrator_parameters["model_path"]
-                model_parameters = self.orchestrator_parameters["generation_models_list"][0]["model_parameters"]
-                dt_params_path = self.orchestrator_parameters["generation_models_list"][0]["digital_twin_parameters_path"]
+                model_path = self.cache_object.cache_model["model_path"]
+                model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
+                dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
                 
                 module = importlib.import_module(i["type"])
                 digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
+                digital_twin_model.GenerateModel()
+                
+                self.digital_twin_models[self.model_to_run] = digital_twin_model
                 return digital_twin_model       ##TODO: DT could be return None!!?
                 
         if not digital_twin_model:
@@ -57,7 +63,7 @@ class DigitalTwin:
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
                 return True
-        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: Make it to be able to save the models they are not in the json!!!
             
     def uploader(self):
         try:
@@ -73,53 +79,79 @@ class DigitalTwin:
         except Exception as e:
             print(f"An unexpected error!: {e}")
             
-    def predict(self, input_value):      
-        if self._set_model():
-            
-            if not self.cache_object.cache_model:
-                parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
-                
-                if not parameters:
-                    path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
-                    with open(path, 'r') as file:
-                        parameters = json.load(file)
-                                            
-                        self.cache_object.cache_model = parameters
-                
-            else:
-                if self.cache_object.model_name == self.cache_object_name:
-                    parameters = self.cache_object.cache_model
-                    
-                else:
-                    parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
-                    self.cache_object.cache_model =  parameters                     
-                    
-            
-            updated, updated_params = self.initial_model.update_parameters(input_value, self.model_to_run)
-            if updated:
-                
-                #self.update_input(input_value)
-                self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]["material_parameters"]  = updated_params["parameters"]
-                
-                self.cache_object.update_store(parameters)
-                                               
-                self.initial_model.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
-            
-                self.initial_model.GenerateModel() ##TODO: Avoid loading the mesh every time!!
-            
-                self.initial_model.field_data_storer(self.model_to_run) ##TODO: Make it conditional. Run it if there is a change!!
-            
-                self.uploader()
-                
-                self.initial_model.field_assignment(self.model_params)
-                
-                self.initial_model.solve()
-                self.initial_model.field_data_storer(self.model_to_run)
+#%%
 
-            return self.initial_model.export_output(self.model_to_run)
+    def predict(self, input_value):
+        """
+        Predicts the outcome based on the input value by setting up and running a model.
+        """
+        if not self._set_model():
+            #self.digital_twin_model = self._initialize_default_model()
+            return 
             
-        return None
+        # Load cached parameters or default parameters if cache is missing
+        if self.model_to_run not in self.digital_twin_models.keys():
+            self._loaded_params = self._get_or_load_parameters()
+            self.initial_model = self._initialize_default_model()
+        else:
+            self.initial_model = self.digital_twin_models[self.model_to_run]
+            
+        # Update model parameters if necessary
+        updated, updated_params = self.initial_model.update_parameters(input_value, self.model_to_run)
+        if updated:
+            self._update_cached_model(self._loaded_params, updated_params)
+            self._run_model()
     
+        return self.initial_model
+    
+    def _get_or_load_parameters(self):
+        """
+        Retrieves cached model parameters or loads default parameters if the cache is missing.
+        """
+        if not self.cache_object.cache_model:
+            parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
+            if not parameters:
+                with open(self._default_parameters_path(), 'r') as file:
+                    parameters = json.load(file)
+                self.cache_object.cache_model = parameters
+        else:
+            if self.cache_object.model_name != self.cache_object_name:
+                parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
+                self.cache_object.cache_model = parameters
+            else:
+                parameters = self.cache_object.cache_model
+        
+        return parameters
+    
+    def _update_cached_model(self, parameters, updated_params):
+        """
+        Updates the cached model with new parameters and stores the changes.
+        """
+        self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]["material_parameters"] = updated_params["parameters"]
+        self.cache_object.update_store(parameters)
+        self.initial_model.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
+    
+# =============================================================================
+#     def _prepare(self):
+#         self.initial_model.GenerateModel()
+# =============================================================================
+        
+    def _run_model(self):
+        """
+        Prepares and runs the model, avoiding redundant operations when possible.
+        """
+        #self.initial_model.fields_data_storer(self.model_to_run)  # TODO: Make conditional based on changes
+        self.uploader()
+        self.initial_model.fields_assignment(self.model_params)
+        self.initial_model.solve()
+        self.initial_model.fields_data_storer(self.model_to_run)
+    
+    def _default_parameters_path(self):
+        """
+        Returns the default parameters file path.
+        """
+        return "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+#%%     
     def store_update(self):            
         measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]
         with open(measured_vs_path, 'r') as f:
@@ -142,8 +174,8 @@ import random
 
 def generate_random_rho():
     """
-    Generates a random 'rho' value for vehicles passing through the bridge 
-    between 5000 and 10000,
+    Generates a random parameters (currently only 'rho') value for vehicles passing through the bridge.
+    rho: between 5000 and 10000
     """
     params = dict()
     random_value = random.randint(5000 // 50, 10000 // 50) * 50

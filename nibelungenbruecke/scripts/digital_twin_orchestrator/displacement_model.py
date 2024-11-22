@@ -168,14 +168,14 @@ class DisplacementModel(BaseModel):
             
         return json_path
     
-    def field_assignment(self, data):
+    def fields_assignment(self, data):
         for i in data.keys():
             if i == "displacement":
                 self.problem.fields.displacement = data[i]
             elif i == "temperature":
                 self.problem.fields.temperature = data[i]
     
-    def field_data_storer(self, path):
+    def fields_data_storer(self, path):
         data_to_store = {}
 
         for i in dir(self.problem.fields):
