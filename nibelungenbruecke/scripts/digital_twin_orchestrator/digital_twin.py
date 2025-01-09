@@ -15,7 +15,6 @@ class DigitalTwin:
     
     def __init__(self, model_parameters_path: dict, model_to_run = "Displacement_1"): 
         self.model_to_run = model_to_run
-
         
         self.orchestrator_parameters = self._extract_model_parameters(model_parameters_path)
         self._load_models()
@@ -45,7 +44,7 @@ class DigitalTwin:
                 digital_twin_model.GenerateModel()
                 
                 self.digital_twin_models[self.model_to_run] = digital_twin_model
-                return digital_twin_model       ##TODO: DT could be return None!!?
+                return digital_twin_model       ##TODO: DT could return None!!?
                 
         if not digital_twin_model:
             raise ValueError(f"Invalid model {digital_twin_model}. digital twin model should not be empty!")
@@ -150,7 +149,8 @@ class DigitalTwin:
         """
         Returns the default parameters file path.
         """
-        return "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+        default_parameters_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+        return default_parameters_path
 #%%     
     def store_update(self):            
         measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]
@@ -166,8 +166,6 @@ class DigitalTwin:
                 
         return triggered
      
-
-
 #%%
 
 import random
@@ -182,8 +180,6 @@ def generate_random_rho():
     params["rho"] =random_value
     
     return params
-
-
 
 if __name__ == "__main__":
     

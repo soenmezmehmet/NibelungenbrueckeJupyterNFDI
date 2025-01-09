@@ -28,7 +28,7 @@ class Orchestrator:
         self.updated = (output == 2 * input_value)
 
     def run(self, input_value, model_to_run):
-        prediction = self.predict_dt(self.digital_twin, input_value)
+        prediction = self.predict_dt(self.digital_twin_models, input_value)
         #prediction = self.predict_last_week(digital_twin, input_value)
         print("Prediction:", prediction) #TODO
         
@@ -56,5 +56,27 @@ if __name__ == "__main__":
     
     
     input_value=generate_random_rho()
+    print(input_value)
 
-    orchestrator.run(input_value, model_to_run)     ##TODO: rho should be the one changing!
+    orchestrator.run(input_value, model_to_run)
+#####
+    input_value_02=generate_random_rho()
+    print(input_value_02)
+    
+    orchestrator.run(input_value, model_to_run)
+    
+#####
+
+    model_to_run = "Displacement_1"
+    input_value_03=generate_random_rho()
+    print(input_value_03)
+
+    orchestrator.run(input_value, model_to_run)
+    
+#####
+
+    model_to_run = "Displacement_3"
+    input_value_04=generate_random_rho()
+    print(input_value_04)
+
+    orchestrator.run(input_value, model_to_run)
