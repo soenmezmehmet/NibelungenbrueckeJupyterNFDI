@@ -162,6 +162,3 @@ use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sens
 use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/20230215092338.json
 use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/API_meta_output.json
 use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/*.csv
-
-### fenicsxconcrete_demonstrator test
-tests/test_orchestrator/test_orchestrator.py

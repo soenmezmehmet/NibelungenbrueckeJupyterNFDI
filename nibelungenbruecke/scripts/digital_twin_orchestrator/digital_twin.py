@@ -1,6 +1,7 @@
 import sys
 import ufl
 import json
+import copy
 import pickle
 import importlib
 import numpy as np
@@ -59,6 +60,8 @@ class DigitalTwin:
             if model_info["name"] == self.model_to_run:
                 self.cache_model_name = model_info["type"]
                 self.cache_object_name = model_info["class"]
+                rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
+                self.cache_model_path = rel_path + model_info["path"]
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
                 return True

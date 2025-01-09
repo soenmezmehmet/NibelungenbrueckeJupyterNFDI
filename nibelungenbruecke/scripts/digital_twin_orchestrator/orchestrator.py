@@ -12,7 +12,6 @@ class Orchestrator:
     def _digital_twin_initializer(self):
         return DigitalTwin(self.model_parameters_path, self.model_to_run)
         
-        
     def predict_dt(self, digital_twin, input_value):
         return digital_twin.predict(input_value)
     
@@ -31,7 +30,7 @@ class Orchestrator:
         prediction = self.predict_dt(self.digital_twin_models, input_value)
         #prediction = self.predict_last_week(digital_twin, input_value)
         print("Prediction:", prediction) #TODO
-        
+
 #%%
 if __name__ == "__main__":
     path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   

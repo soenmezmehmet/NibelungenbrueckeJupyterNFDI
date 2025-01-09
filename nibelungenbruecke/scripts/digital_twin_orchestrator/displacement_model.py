@@ -1,13 +1,16 @@
-from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
+#from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
 import dolfinx as df
 import json
-from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
+#from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
 from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
+import importlib
 from fenicsxconcrete.util import ureg
+f#rom fenicsxconcrete.finite_element_problem.linear_elasticity import LinearElasticity
+from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
+from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
-import importlib
 import time
 import pickle
 
@@ -46,6 +49,7 @@ class DisplacementModel(BaseModel):
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
         self.problem.dynamic_solve()        ##TODO: change the name!
+        #self.problem.solve()
 
         translator.save_to_MKP(self.api_dataFrame)
         translator.save_virtual_sensor(self.problem)
@@ -128,19 +132,16 @@ class DisplacementModel(BaseModel):
         self.GenerateModel()
         self.GenerateData()
         
-        #TODO: API Request output error!!
         self.sensor_out = self.api_dataFrame['E_plus_080DU_HSN-u-_Avg1'].iloc[-1] # *1000 #Convertion from meter to milimeter
         #self.sensor_out = self.api_dataFrame['E_plus_413TU_HSS-m-_Avg1'].iloc[-1]
-   
-        
+ 
         vs_file_path = self.model_parameters["virtual_sensor_added_output_path"]
         with open(vs_file_path, 'r') as file:
             self.vs_data = json.load(file)        
         
-        #TODO: API Request output error!!
         #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HSS-m-_Avg1']['displacements'][-1][0]
         self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
-        
+
     def export_output(self, path: str): #TODO: json_path as a input parameters!! -> Changes' been done!
         #json_path = "output_data.json" #TODO: move to json file
         

@@ -164,4 +164,8 @@ use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/senso
 use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/sensors/*.csv
 
 ### fenicsxconcrete_demonstrator test
+<<<<<<< HEAD
 tests/test_orchestrator/test_orchestrator.py
+=======
+tests/test_orchestrator/test_orchestrator.py
+>>>>>>> sensors_fatih_withComments
