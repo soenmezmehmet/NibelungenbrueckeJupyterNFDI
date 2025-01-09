@@ -107,7 +107,7 @@ class NibelungenExperiment(Experiment):
             "width": 1.0,
             "length_road": 10.0,
             "width_road": 10.0,
-            "dt": 30.0,
+            "dt": 75.0,
             "boundary_conditions": [{"model": "clamped_boundary", "side_coord": 0.0, "coord": 0}],
         }
 
@@ -284,7 +284,7 @@ if __name__ == "__main__":
      'length_road': 95.0,
      'width_road': 14.0,
      'thickness_deck': 0.2,
-     'dt': 30.0,
+     'dt': 75.0,
      'reference_temperature': 300,
      'temperature_coefficient': 1e-05,
      'temperature_alpha': 1e-05,

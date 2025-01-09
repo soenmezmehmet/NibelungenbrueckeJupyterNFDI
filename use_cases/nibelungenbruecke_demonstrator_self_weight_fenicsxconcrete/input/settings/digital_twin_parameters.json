@@ -4,7 +4,7 @@
         "type": "displacement_model",
         "class": "DisplacementModel",
         "parameters": {
-            "rho": 9600,
+            "rho": 5650,
             "E": 200000000000.0,
             "nu": 0.28
         },
@@ -15,7 +15,7 @@
         "type": "displacement_model",
         "class": "DisplacementModel",
         "parameters": {
-            "rho": 5500,
+            "rho": 7400,
             "E": 210000000000.0,
             "nu": 0.28
         },
