@@ -129,7 +129,7 @@ def project_point_onto_mesh(point, mesh):
     return centroid
 
 
-def query_point(point):
+def query_point(point, mesh):
     """
     Query if a point is inside the mesh, and if not, project it onto the closest point.
 
@@ -140,8 +140,8 @@ def query_point(point):
     Returns:
         (np.ndarray, bool): Closest point on the mesh and whether the point is inside the mesh.
     """
-    path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh'
-    mesh, cell_tags, facet_tags = gmshio.read_from_msh(path, MPI.COMM_WORLD, 0)
+    #path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh.msh'
+    #mesh, cell_tags, facet_tags = gmshio.read_from_msh(path, MPI.COMM_WORLD, 0)
     
     inside, cell_index = is_point_inside_mesh(point, mesh)
     if inside:

@@ -62,8 +62,6 @@ class DigitalTwin:
                 self.cache_object_name = model_info["class"]
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
-                rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
-                self.cache_model_path = rel_path + model_info["path"]
                 return True
         raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: Make it to be able to save the models they are not in the json!!!
             
@@ -75,6 +73,7 @@ class DigitalTwin:
                 return self.model_params
         
         except FileNotFoundError:
+            self.model_params = None
             print(f"Error: The file {self.model_to_run} was not found!")    #TODO: Use assertion instead!!
             return None
         
@@ -103,6 +102,8 @@ class DigitalTwin:
         if updated:
             self._update_cached_model(self._loaded_params, updated_params)
             self._run_model()
+        else:
+            return ("Same model with the same parameters!!")
     
         return self.initial_model
     

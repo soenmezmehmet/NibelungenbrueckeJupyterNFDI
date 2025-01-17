@@ -15,7 +15,7 @@ class ObjectCache:
         try:       
             with open(self.cache_path, 'rb') as f:
                 self.cache_model = json.load(f)
-                print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
+                #print(f"Model '{self.model_name}' loaded successfully -> {self.cache_model}.")
                 return self.cache_model
         except FileNotFoundError:
             print(f"Error: The file '{self.cache_path}' was not found.")

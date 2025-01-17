@@ -1,18 +1,17 @@
-#from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
-import dolfinx as df
 import json
-#from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
-from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
 import importlib
+import time
+import pickle
+
+import dolfinx as df
 from fenicsxconcrete.util import ureg
-f#rom fenicsxconcrete.finite_element_problem.linear_elasticity import LinearElasticity
+from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
+
+from nibelungenbruecke.scripts.utilities.loaders import load_sensors
+from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
 from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
 from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
-from nibelungenbruecke.scripts.utilities.loaders import load_sensors
-from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
-import time
-import pickle
 
 class DisplacementModel(BaseModel):
     
@@ -45,7 +44,7 @@ class DisplacementModel(BaseModel):
         metadata_saver.saving_metadata()
 
         translator = Translator(self.model_parameters)
-        translator.translator_to_sensor()
+        translator.translator_to_sensor(self.experiment.mesh)
 
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
         self.problem.dynamic_solve()        ##TODO: change the name!
@@ -109,9 +108,10 @@ class DisplacementModel(BaseModel):
                 if entry["name"] == target_name:
                     for key, value in updates.items():
                         if key in entry["parameters"]:
-                            entry["parameters"][key] = value
-                            model_type_params = entry
-                            updated = True
+                            if entry["parameters"][key] != value:
+                                entry["parameters"][key] = value
+                                model_type_params = entry
+                                updated = True
    
             # Save the updated JSON back to the file
             if updated:
@@ -119,7 +119,7 @@ class DisplacementModel(BaseModel):
                     json.dump(dt_params, file, indent=4)
                 return True, model_type_params
             else:
-                return False
+                return False, None
         except Exception as e:
             print(f"An error occurred: {e}")
             return False
@@ -170,12 +170,16 @@ class DisplacementModel(BaseModel):
         return json_path
     
     def fields_assignment(self, data):
-        for i in data.keys():
-            if i == "displacement":
-                self.problem.fields.displacement = data[i]
-            elif i == "temperature":
-                self.problem.fields.temperature = data[i]
-    
+        if data == None:
+            pass
+        
+        else:
+            for i in data.keys():
+                if i == "displacement":
+                    self.problem.fields.displacement = data[i]
+                elif i == "temperature":
+                    self.problem.fields.temperature = data[i]
+        
     def fields_data_storer(self, path):
         data_to_store = {}
 

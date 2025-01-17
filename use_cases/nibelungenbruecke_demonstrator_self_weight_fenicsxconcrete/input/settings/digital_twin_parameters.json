@@ -4,8 +4,8 @@
         "type": "displacement_model",
         "class": "DisplacementModel",
         "parameters": {
-            "rho": 5650,
-            "E": 200000000000.0,
+            "rho": 2100,
+            "E": 200000000000,
             "nu": 0.28
         },
         "path": "Displacement_1.json"
@@ -15,8 +15,8 @@
         "type": "displacement_model",
         "class": "DisplacementModel",
         "parameters": {
-            "rho": 7400,
-            "E": 210000000000.0,
+            "rho": 2900,
+            "E": 300000000000,
             "nu": 0.28
         },
         "path": "Displacement_2.json"

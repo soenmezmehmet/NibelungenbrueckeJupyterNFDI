@@ -385,7 +385,7 @@ class Translator:
             "sensors": []
         }
 
-    def translator_to_sensor(self):
+    def translator_to_sensor(self, mesh):
         self.MKP_meta_output_path = self.path["MKP_meta_output_path"]
 
         default_parameters_data = self._default_parameters()
@@ -402,7 +402,7 @@ class Translator:
                         "sensor_file": "",
                         "units": "meter",
                         "dimensionality": "[length]",
-                        "where": query_point(item["coordinate"])[0].tolist()
+                        "where": query_point(item["coordinate"], mesh)[0].tolist()
                     }
 
                     if key == "Temp":
