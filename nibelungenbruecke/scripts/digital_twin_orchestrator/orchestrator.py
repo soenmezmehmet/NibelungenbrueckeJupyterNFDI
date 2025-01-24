@@ -70,18 +70,18 @@ if __name__ == "__main__":
 
     orchestrator.run(input_value, model_to_run)
       
-#####
+# #####
 
-    model_to_run = "Displacement_1"
-    input_value=generate_random_rho(input_value, parameters="E")
-    print(input_value)
+#     model_to_run = "Displacement_1"
+#     input_value=generate_random_rho(input_value, parameters="E")
+#     print(input_value)
 
-    orchestrator.run(input_value, model_to_run) 
+#     orchestrator.run(input_value, model_to_run) 
     
-#####
+# #####
 
-    model_to_run = "Displacement_3"
-    input_value_04=generate_random_rho()
-    print(input_value_04)
+#     model_to_run = "Displacement_3"
+#     input_value_04=generate_random_rho()
+#     print(input_value_04)
 
-    orchestrator.run(input_value, model_to_run)
+#     orchestrator.run(input_value, model_to_run)
