@@ -34,7 +34,7 @@
             "length_road": 95.0,
             "width_road": 14.0,
             "thickness_deck": 0.2,
-            "dt": 10.0,
+            "dt": 90.0,
             "boundary_conditions": {
                 "bc1":{
                     "model":"clamped_edge",

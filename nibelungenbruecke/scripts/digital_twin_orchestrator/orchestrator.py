@@ -33,11 +33,8 @@ class Orchestrator:
             self.digital_twin_models = self._digital_twin_initializer()
             
         prediction = self.predict_dt(self.digital_twin_models, input_value)
-        #prediction = self.predict_last_week(digital_twin, input_value)     ##TODO: Does not function properly!!!
+        #prediction = self.predict_last_week(digital_twin, input_value)     ##TODO: input type can be better!!
         print("Prediction:", prediction) #TODO
-
-            
-            
 
 #%%
 if __name__ == "__main__":
@@ -80,30 +77,6 @@ if __name__ == "__main__":
     print(input_value)
 
     orchestrator.run(input_value, model_to_run) 
-    
-#####  
-  
-    input_value=generate_random_rho()
-    print(input_value)
-
-    orchestrator.run(input_value, model_to_run)
-    
-#####
-
-    orchestrator.run(input_value, model_to_run)
-    
-    input_value = generate_random_rho(input_value , parameters="E")
-    print(input_value)
-    
-    orchestrator.run(input_value, model_to_run)
- 
-#####
-
-    model_to_run = "Displacement_1"
-    input_value=generate_random_rho(input_value, parameters="E")
-    print(input_value)
-
-    orchestrator.run(input_value, model_to_run)
     
 #####
 

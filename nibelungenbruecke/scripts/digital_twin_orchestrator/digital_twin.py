@@ -45,17 +45,26 @@ class DigitalTwin:
                 digital_twin_model.GenerateModel()
                 
                 self.digital_twin_models[self.model_to_run] = digital_twin_model
-                return digital_twin_model       ##TODO: DT could return None!!?
+                return digital_twin_model
                 
         if not digital_twin_model:
             raise ValueError(f"Invalid model {digital_twin_model}. digital twin model should not be empty!")
         
     def _load_models(self):
-        dt_params_path = self.orchestrator_parameters["generation_models_list"][0]["digital_twin_parameters_path"]
-        with open(dt_params_path, 'r') as json_file:
-            self._models = json.load(json_file)
-    
+        """
+        Loads the predefined model parameters from the json file.
+        
+        """
+        dt_params_path = self.orchestrator_parameters["generation_models_list"][0]["digital_twin_parameters_path"]      
+        try:
+            with open(dt_params_path, 'r') as json_file:
+                self._models = json.load(json_file)
+                
+        except Exception as exc:
+            raise RuntimeError('Failed to open the path!') from exc
+                
     def _set_model(self):
+
         for model_info in self._models:
             if model_info["name"] == self.model_to_run:
                 self.cache_model_name = model_info["type"]
@@ -63,7 +72,7 @@ class DigitalTwin:
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
                 return True
-        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: Make it to be able to save the models they are not in the json!!!
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: It doesn't create objects/their initializing parameters if it's not in the predefined json!! 
             
     def uploader(self):
         try:

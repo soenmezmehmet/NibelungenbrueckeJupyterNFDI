@@ -94,7 +94,7 @@ class DisplacementModel(BaseModel):
 
     def update_parameters(self, updates, target_name=None):
         """
-        Updates specified parameters in a JSON file.
+        Updates the specified parameters in the JSON file.
         """
         try:
             with open(self.dt_path, 'r') as f:

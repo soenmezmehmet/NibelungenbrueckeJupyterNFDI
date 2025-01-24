@@ -402,7 +402,7 @@ class Translator:
                         "sensor_file": "",
                         "units": "meter",
                         "dimensionality": "[length]",
-                        "where": query_point(item["coordinate"], mesh)[0].tolist()
+                        "where": query_point(item["coordinate"], mesh)[0].tolist()  ##TODO: error causing the same results for vs !
                     }
 
                     if key == "Temp":
