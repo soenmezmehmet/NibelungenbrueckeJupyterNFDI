@@ -342,7 +342,7 @@ class MetadataSaver:
                 "name": column_name,
                 "unit": "\u00b0C",
                 "sample_rate": 0.0016666666666666668,   
-                "coordinate": [80, 0.0, 0.0],
+                "coordinate": [80.0, 0.0, 0.0],
                 "height": 107.438                        
             })
                 
@@ -352,7 +352,7 @@ class MetadataSaver:
                 "name": column_name,
                 "unit": "\u00b0C",
                 "sample_rate": 0.0016666666666666668,   
-                "coordinate": [80, -4.74, 0.0],
+                "coordinate": [80.0, -4.74, 0.0],
                 "height": 102.698                       
             })
 
@@ -495,7 +495,7 @@ class Translator:
         with open(self.translated_data_path, "w") as json_file:
             json.dump(json_data, json_file, indent=4)
 
-    def save_virtual_sensor(self, displacement_values):
+    def save_virtual_sensor(self, problem):
         self.virtual_sensor_added_output_path = self.path["virtual_sensor_added_output_path"]
 
         with open(self.MKP_input_path, 'r') as f:
@@ -515,9 +515,9 @@ class Translator:
         for sensor in self.metadata["sensors"]:
             sensor_id = sensor["id"]
             position = sensor["where"]
-            displacement_value = displacement_values.sensors.get(sensor_id, None)
+            displacement_value = problem.sensors.get(sensor_id, None)
             if displacement_value is not None:
-                displacement_value_list = displacement_value.data[0].tolist()
+                displacement_value_list = displacement_value.data[-1].tolist()
                 if sensor_id not in VS_data["virtual_sensors"]:
                     VS_data["virtual_sensors"][sensor_id] = {"displacements": []}
                 VS_data["virtual_sensors"][sensor_id]["displacements"].append(displacement_value_list)

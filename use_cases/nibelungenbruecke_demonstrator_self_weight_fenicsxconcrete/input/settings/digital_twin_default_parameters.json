@@ -29,12 +29,12 @@
             "initial_position": [0.0,0.0,0.0],
             "speed": 1.0,
             "length": 7.5,
-            "width": 2.5,
+            "width": 5.0,
             "height": 6.5,
             "length_road": 95.0,
             "width_road": 14.0,
             "thickness_deck": 0.2,
-            "dt": 90.0,
+            "dt": 10.0,
             "boundary_conditions": {
                 "bc1":{
                     "model":"clamped_edge",

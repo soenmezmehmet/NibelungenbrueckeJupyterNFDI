@@ -29,6 +29,9 @@ class NibelungenExperiment(Experiment):
         default_p = Parameters()
         #default_p.update(parameters)
         #default_p.update(self.material_parameters)
+        for key, value in self.material_parameters.items():
+            default_p[key] = value * ureg.dimensionless
+        
         
         super().__init__(default_p)
         
@@ -183,6 +186,15 @@ class NibelungenExperiment(Experiment):
 
         return L
     
+#%%
+##TODO: Not sure about the implementation!! Aiming to include vehicles' wegiht in the solution
+
+    def boundary_force_field(self):
+    
+        f = fem.Constant(self.mesh, ScalarType((0, -self.load_value, 0)))
+        return f
+        
+    
 #%%   
     def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form: ## TODO: Delete v!?
         """moving load
@@ -217,7 +229,7 @@ class NibelungenExperiment(Experiment):
         """Advance the load for the line test load generator."""
         self.current_position[2] += self.speed * dt
         self.historic_position.append(self.current_position[2])
-        # self.evaluate_load()
+        self.evaluate_load()
 
         return self.current_position[2] > self.length_road + self.length_vehicle
 
@@ -232,8 +244,6 @@ class NibelungenExperiment(Experiment):
         subdomain_values = np.full_like(subdomain, 1)
         facet_tags = mesh.meshtags(self.mesh, self.mesh.topology.dim - 1, subdomain, subdomain_values)
         self.ds_load = ufl.Measure("ds", domain=self.mesh, subdomain_data=facet_tags)
-
-
 
 
 # Define subdomain where the load should be applied

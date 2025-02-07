@@ -91,12 +91,14 @@ class DigitalTwin:
             
 #%%
 
-    def predict(self, input_value):
+    def predict(self, input_value, model_to_run):
         """
         Predicts the outcome based on the input value by setting up and running a model.
         """
+        self.model_to_run = model_to_run
+        
         if not self._set_model():
-            #self.digital_twin_model = self._initialize_default_model()
+            #self.digital_twin_model = self._initialize_default_model()  ##TODO:
             return 
             
         # Load cached parameters or default parameters if cache is missing
@@ -109,7 +111,7 @@ class DigitalTwin:
         # Update model parameters if necessary
         updated, updated_params = self.initial_model.update_parameters(input_value, self.model_to_run)
         if updated:
-            self._update_cached_model(self._loaded_params, updated_params)
+            self._update_cached_model(self._loaded_params, updated_params)  # updates model parameters w.r.t. new input data!
             self._run_model()
         else:
             return ("Same model with the same parameters!!")
@@ -164,6 +166,7 @@ class DigitalTwin:
         """
         default_parameters_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
         return default_parameters_path
+    
 #%%     
     def store_update(self):            
         measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]

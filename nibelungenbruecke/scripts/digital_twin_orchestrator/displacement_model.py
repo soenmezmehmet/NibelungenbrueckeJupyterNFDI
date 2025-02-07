@@ -31,11 +31,14 @@ class DisplacementModel(BaseModel):
     def GenerateModel(self):
         
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
-        self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
-        self.problem = LinearElasticityNibelungenbrueckeDemonstrator(self.experiment, self.default_p)
+        #self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
+        self.default_p.update(self.experiment.p)
+        self.problem = LinearElasticityNibelungenbrueckeDemonstrator([self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.default_p)
         
     def GenerateData(self):
+        
         """Generate data based on the model parameters."""
+        #print(f"running....{i}")
 
         self.api_request = API_Request(self.model_parameters["secret_path"])
         self.api_dataFrame = self.api_request.fetch_data()
@@ -43,21 +46,31 @@ class DisplacementModel(BaseModel):
         metadata_saver = MetadataSaver(self.model_parameters, self.api_dataFrame)
         metadata_saver.saving_metadata()
 
-        translator = Translator(self.model_parameters)
-        translator.translator_to_sensor(self.experiment.mesh)
-
+        self.translator = Translator(self.model_parameters)
+        self.translator.translator_to_sensor(self.experiment.mesh)
+        
         self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
+        
+    def SolveMethod(self):
         self.problem.dynamic_solve()        ##TODO: change the name!
-        #self.problem.solve()
-
-        translator.save_to_MKP(self.api_dataFrame)
-        translator.save_virtual_sensor(self.problem)
-
+        
+    def PostAPIData(self):
+        
+        self.translator.save_to_MKP(self.api_dataFrame)
+        self.translator.save_virtual_sensor(self.problem)        
+        
+    def ParaviewFirstRun(self):
         if self.model_parameters["paraview_output"]:
             with df.io.XDMFFile(self.problem.mesh.comm, self.model_parameters["paraview_output_path"]+"/"+self.model_parameters["model_name"]+".xdmf", "w") as xdmf:
                 xdmf.write_mesh(self.problem.mesh)
-                xdmf.write_function(self.problem.fields.displacement)
+                #xdmf.write_function(self.problem.fields.displacement, self.problem.time)        
+    def ParaviewProcess(self):
         
+        if self.model_parameters["paraview_output"]:
+            with df.io.XDMFFile(self.problem.mesh.comm, self.model_parameters["paraview_output_path"]+"/"+self.model_parameters["model_name"]+".xdmf", "a") as xdmf:
+                # xdmf.write_mesh(self.problem.mesh)
+                xdmf.write_function(self.problem.fields.displacement, self.problem.time)
+                
     @staticmethod
     def _get_default_parameters():
         """
@@ -110,6 +123,7 @@ class DisplacementModel(BaseModel):
                         if key in entry["parameters"]:
                             if entry["parameters"][key] != value:
                                 entry["parameters"][key] = value
+                                self.problem.p[key] = value  ##TODO: problem.p update!!
                                 model_type_params = entry
                                 updated = True
    
@@ -124,14 +138,14 @@ class DisplacementModel(BaseModel):
             print(f"An error occurred: {e}")
             return False
 
-
-        
+#%%
     def solve(self):
 
         self.LoadGeometry()
         self.GenerateModel()
         self.GenerateData()
-        
+        self.ParaviewFirstRun()
+        self.SolveMethod()
         self.sensor_out = self.api_dataFrame['E_plus_080DU_HSN-u-_Avg1'].iloc[-1] # *1000 #Convertion from meter to milimeter
         #self.sensor_out = self.api_dataFrame['E_plus_413TU_HSS-m-_Avg1'].iloc[-1]
  
@@ -163,7 +177,6 @@ class DisplacementModel(BaseModel):
             dt_params = json.load(f)
         output_data.setdefault('Input_parameter', []).append(dt_params[0]["parameters"]["E"])
 
-        
         with open(json_path, 'w') as file:
             json.dump(output_data, file)
             
@@ -195,6 +208,9 @@ class DisplacementModel(BaseModel):
                 
         except Exception as e:
             print(f"An error occurred while saving the model: {e}")
+            
+            
+
 
 #%%
     
