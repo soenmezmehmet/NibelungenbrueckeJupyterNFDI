@@ -83,7 +83,7 @@ class NibelungenExperiment(Experiment):
         setup_parameters = {}
         setup_parameters["load"] = 1000 * ureg("N/m^2")
         setup_parameters["height"] = 0.3 * ureg("m")    #TODO:
-        setup_parameters["length"] = 1 * ureg("m")
+        setup_parameters["length"] = 70 * ureg("m")
         setup_parameters["dim"] = 3 * ureg("")
         setup_parameters["width"] = 0.3 * ureg("m")  # only relevant for 3D case
         setup_parameters["num_elements_length"] = 10 * ureg("")
@@ -108,7 +108,7 @@ class NibelungenExperiment(Experiment):
             "speed": 1.0,
             "length": 1.0,
             "width": 1.0,
-            "length_road": 10.0,
+            "length_road": 90.0,
             "width_road": 10.0,
             "dt": 75.0,
             "boundary_conditions": [{"model": "clamped_boundary", "side_coord": 0.0, "coord": 0}],
@@ -130,19 +130,36 @@ class NibelungenExperiment(Experiment):
 
         bc_generator = BoundaryConditions(self.mesh, V)
 
-        
-        if self.p["dim"] == 3:
+        if self.p["dim"] == 2:
+            # fix line in the left
+            bc_generator.add_dirichlet_bc(
+                np.array([0.0, 0.0], dtype=ScalarType),
+                boundary=self.boundary_left(),
+                method="geometrical",
+            )
+            # line with dof in x direction on the right
+            bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 1, "geometrical", 0)
+
+        elif self.p["dim"] == 3:
             # fix line in the left
             bc_generator.add_dirichlet_bc(
                 np.array([0.0, 0.0, 0.0], dtype=ScalarType),
                 boundary=self.boundary_left(),
                 method="geometrical",
             )
+            
+            # fix line in the left
+            bc_generator.add_dirichlet_bc(
+                np.array([0.0, 0.0, 0.0], dtype=ScalarType),
+                boundary=self.boundary_right(),
+                method="geometrical",
+            )
+            
             # line with dof in x direction on the right
-            bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 1, "geometrical", 0)
-            bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 2, "geometrical", 0)
-
-        return bc_generator.bcs 
+            #bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 1, "geometrical", 0)
+            #bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 2, "geometrical", 0)
+            
+        return bc_generator.bcs
     
     def boundary_left(self) -> Callable:
         """specifies boundary at bottom
@@ -152,8 +169,10 @@ class NibelungenExperiment(Experiment):
 
         """
 
-        if self.p["dim"] == 3:
-            return line_at([0, 0], ["x", "z"])
+        if self.p["dim"] == 2:
+            return point_at([0, 0])
+        elif self.p["dim"] == 3:
+            return line_at([0, 0], ["y", "z"])
 
     def boundary_right(self) -> Callable:
         """specifies boundary at bottom
@@ -163,8 +182,10 @@ class NibelungenExperiment(Experiment):
 
         """
 
-        if self.p["dim"] == 3:
-            return line_at([self.p["length"], 0], ["x", "z"])
+        if self.p["dim"] == 2:
+            return point_at([0, self.length_road])
+        elif self.p["dim"] == 3:
+            return line_at([0, self.length_road], ["y", "z"])
         
 
     def create_body_force(self, v: ufl.argument.Argument) -> ufl.form.Form:
@@ -179,23 +200,18 @@ class NibelungenExperiment(Experiment):
         """
 
         force_vector = np.zeros(self.p["dim"])
-        force_vector[-1] = -self.p["rho"] * self.p["g"]  # works for 2D and 3D
+        force_vector[1] = -self.p["rho"] * self.p["g"]  # works for 2D and 3D
 
         f = df.fem.Constant(self.mesh, ScalarType(force_vector))
         L = ufl.dot(f, v) * ufl.dx
 
         return L
-    
-#%%
-##TODO: Not sure about the implementation!! Aiming to include vehicles' wegiht in the solution
 
     def boundary_force_field(self):
     
         f = fem.Constant(self.mesh, ScalarType((0, -self.load_value, 0)))
         return f
-        
-    
-#%%   
+ 
     def create_force_boundary(self, v: ufl.argument.Argument) -> ufl.form.Form: ## TODO: Delete v!?
         """moving load
 
@@ -215,8 +231,7 @@ class NibelungenExperiment(Experiment):
             i += 1
             
         return self.ds_load
-
-#%%    
+   
     def calculate_lame_constants(self):
         """Calculate the Lame constants for the line test load generator."""
         E_modulus = self.material_parameters["E"]

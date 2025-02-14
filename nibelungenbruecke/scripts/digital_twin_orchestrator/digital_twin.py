@@ -12,26 +12,62 @@ from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache impo
 from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
 
 class DigitalTwin:
-    """Managing digital twin models."""
+    """
+    Manages digital twin models, handling model initialization, predictions, caching, 
+    and parameter updates.
+    
+    Attributes:
+        model_to_run (str): Specifies which predefined model to execute.
+        orchestrator_parameters (dict): Stores parameters extracted from the JSON model file.
+        digital_twin_models (dict): Stores initialized digital twin models.
+        cache_object (ObjectCache): Manages caching of models and parameters.
+        
+    """
     
     def __init__(self, model_parameters_path: dict, model_to_run = "Displacement_1"): 
+        """
+       Initializes the DigitalTwin instance.
+       
+       Args:
+           model_parameters_path (str): Path to the JSON file containing model parameters.
+           model_to_run (str): Specifies which predefined model to execute. Defaults to "Displacement_1".
+           
+       """
         self.model_to_run = model_to_run
-        
         self.orchestrator_parameters = self._extract_model_parameters(model_parameters_path)
         self._load_models()
         self.cache_object = ObjectCache()
-        
         self.digital_twin_models = {}
     
     def _extract_model_parameters(self, path):      ##TODO: make this to adapt the older 
-        """Load parameters from JSON"""
+        """
+        Loads parameters from a JSON file.
         
-        with open(path, 'r') as file:
-            _extracted_model_parameters = json.load(file)
-        return _extracted_model_parameters
+        Args:
+            path (str): Path to the JSON file.
+        
+        Returns:
+            dict: Extracted model parameters.
+        """
+        
+        try:
+            with open(path, 'r') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Error: The file {path} was not found!")
+        except json.JSONDecodeError:
+            raise ValueError("Error: Failed to parse JSON file!")
         
     def _initialize_default_model(self):
-        """Initialize the digital twin model"""
+        """
+        Initializes the digital twin model from the default parameters.
+        
+        Returns:
+            object: An instance of the selected digital twin model.
+        
+        Raises:
+            ValueError: If the selected model is not found.
+        """
         
         digital_twin_model = None
         for i in self._models:
@@ -64,6 +100,15 @@ class DigitalTwin:
             raise RuntimeError('Failed to open the path!') from exc
                 
     def _set_model(self):
+        """
+        Sets up the model based on predefined configurations.
+        
+        Returns:
+            bool: True if the model is successfully set, otherwise raises an error.
+        
+        Raises:
+            ValueError: If the specified model is not found in the JSON file.
+        """
 
         for model_info in self._models:
             if model_info["name"] == self.model_to_run:
@@ -75,7 +120,14 @@ class DigitalTwin:
         raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: It doesn't create objects/their initializing parameters if it's not in the predefined json!! 
             
     def uploader(self):
+        """
+        Loads model parameters from a serialized pickle file.
+        
+        Returns:
+            dict or None: Loaded model parameters or None if the file is missing.
+        """
         try:
+            ##TODO: 
             rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
             with open(f"{rel_path}{self.model_to_run}_params.pkl", "rb") as f:
                 self.model_params = pickle.load(f)                
@@ -88,12 +140,16 @@ class DigitalTwin:
         
         except Exception as e:
             print(f"An unexpected error!: {e}")
-            
-#%%
 
     def predict(self, input_value, model_to_run):
         """
         Predicts the outcome based on the input value by setting up and running a model.
+        
+        Args:
+            input_value (list|dict): Input data for prediction.
+            model_to_run (str): The model to execute.
+        
+
         """
         self.model_to_run = model_to_run
         
@@ -114,13 +170,16 @@ class DigitalTwin:
             self._update_cached_model(self._loaded_params, updated_params)  # updates model parameters w.r.t. new input data!
             self._run_model()
         else:
-            return ("Same model with the same parameters!!")
-    
+            return ("Same model with the same parameters!!") ##TODO: Raise or Pass
+            
         return self.initial_model
     
     def _get_or_load_parameters(self):
         """
         Retrieves cached model parameters or loads default parameters if the cache is missing.
+                
+        Returns:
+            dict: Model parameters.
         """
         if not self.cache_object.cache_model:
             parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
@@ -140,19 +199,19 @@ class DigitalTwin:
     def _update_cached_model(self, parameters, updated_params):
         """
         Updates the cached model with new parameters and stores the changes.
+        
         """
         self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]["material_parameters"] = updated_params["parameters"]
         self.cache_object.update_store(parameters)
         self.initial_model.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
-    
-# =============================================================================
-#     def _prepare(self):
-#         self.initial_model.GenerateModel()
-# =============================================================================
-        
+         
     def _run_model(self):
         """
-        Prepares and runs the model, avoiding redundant operations when possible.
+        Uploads the latest saved model parameters and assigns them to the active model.
+        
+        This provides flexibility to switch between different models, allowing for the assignment 
+        of field data without having to recreate the models from scratch.
+        
         """
         #self.initial_model.fields_data_storer(self.model_to_run)  # TODO: Make conditional based on changes
         self.uploader()
@@ -166,8 +225,7 @@ class DigitalTwin:
         """
         default_parameters_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
         return default_parameters_path
-    
-#%%     
+   
     def store_update(self):            
         measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]
         with open(measured_vs_path, 'r') as f:

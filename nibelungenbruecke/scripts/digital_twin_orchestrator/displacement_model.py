@@ -14,8 +14,21 @@ from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import Nibe
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
 
 class DisplacementModel(BaseModel):
+    """
+    A class representing a displacement model for NB simulations.
+    
+    """
     
     def __init__(self, model_path: str, model_parameters: dict, dt_path: str):
+        """
+        Initializes the DisplacementModel with the given paths and parameters.
+        
+        Args:
+            model_path (str): Path to the model directory.
+            model_parameters (dict): Dictionary containing material properties 
+            and model-specific parameters.
+            dt_path (str): Path to the digital twin parameter file (JSON format).
+        """
         super().__init__(model_path, model_parameters)
         
         self.model_parameters = model_parameters
@@ -26,20 +39,33 @@ class DisplacementModel(BaseModel):
         #self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
         
     def LoadGeometry(self):
+        """
+        Loads the geometry of the model for simulation.
+        
+        """
         pass
     
     def GenerateModel(self):
+        """
+        Generates the model by setting up the attributes experiment and problem with their parameters.
+        
+        This includes setting up material parameters and solving related data 
+        using the `LinearElasticityNibelungenbrueckeDemonstrator` and 'NibelungenExperiment' .
+        """
         
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
         #self.default_p.update(self.experiment.default_parameters()) ## TODO: self.default_p.update(self.experiment.parameters)
         self.default_p.update(self.experiment.p)
-        self.problem = LinearElasticityNibelungenbrueckeDemonstrator([self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.default_p)
+        self.problem = LinearElasticityNibelungenbrueckeDemonstrator(
+            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.default_p)
         
     def GenerateData(self):
-        
-        """Generate data based on the model parameters."""
-        #print(f"running....{i}")
+        """
+        Requests data from an API, transforms it into metadata, 
+        and saves it for use with virtual sensors.
 
+        """
+        
         self.api_request = API_Request(self.model_parameters["secret_path"])
         self.api_dataFrame = self.api_request.fetch_data()
 
@@ -49,27 +75,52 @@ class DisplacementModel(BaseModel):
         self.translator = Translator(self.model_parameters)
         self.translator.translator_to_sensor(self.experiment.mesh)
         
-        self.problem.import_sensors_from_metadata(self.model_parameters["MKP_meta_output_path"])
+        self.problem.import_sensors_from_metadata(
+            self.model_parameters["MKP_meta_output_path"])
         
     def SolveMethod(self):
+        """
+       Solves the model using a dynamic solver.
+       
+       This method is called during the solution process of the displacement model.
+       """
         self.problem.dynamic_solve()        ##TODO: change the name!
         
     def PostAPIData(self):
+        """
+        Saving data of virtual sensor' after the model solve
+        """
         
         self.translator.save_to_MKP(self.api_dataFrame)
         self.translator.save_virtual_sensor(self.problem)        
         
     def ParaviewFirstRun(self):
+        """
+        Handles the first run of Paraview data output.
+        
+        This method is useful for initializing the Paraview output for the 
+        first time, setting up the model visualization,
+        and preparing the mesh for further data writing in later iterations.
+        """
         if self.model_parameters["paraview_output"]:
-            with df.io.XDMFFile(self.problem.mesh.comm, self.model_parameters["paraview_output_path"]+"/"+self.model_parameters["model_name"]+".xdmf", "w") as xdmf:
+            with df.io.XDMFFile(self.problem.mesh.comm, self.model_parameters["paraview_output_path"]
+                                +"/"+self.model_parameters["model_name"]+".xdmf", "w") as xdmf:
                 xdmf.write_mesh(self.problem.mesh)
-                #xdmf.write_function(self.problem.fields.displacement, self.problem.time)        
+                #xdmf.write_function(self.problem.fields.displacement, self.problem.time)     
+                
     def ParaviewProcess(self):
+        """
+        Processes the Paraview data during each timestep.
+        It writes the displacement fields to the Paraview XDMF file.
+        """
         
         if self.model_parameters["paraview_output"]:
-            with df.io.XDMFFile(self.problem.mesh.comm, self.model_parameters["paraview_output_path"]+"/"+self.model_parameters["model_name"]+".xdmf", "a") as xdmf:
+            with df.io.XDMFFile(self.problem.mesh.comm, 
+                                self.model_parameters["paraview_output_path"]+
+                                "/"+self.model_parameters["model_name"]+".xdmf", "a") as xdmf:
                 # xdmf.write_mesh(self.problem.mesh)
-                xdmf.write_function(self.problem.fields.displacement, self.problem.time)
+                xdmf.write_function(self.problem.fields.displacement, 
+                                    self.problem.time)
                 
     @staticmethod
     def _get_default_parameters():
@@ -85,29 +136,19 @@ class DisplacementModel(BaseModel):
             "nu":0.28 * ureg("")
         }
         return default_parameters
- 
-#%%    
-# =============================================================================
-#     def update_input(self, sensor_input):
-#         
-#         with open(self.dt_path, 'r') as f:
-#             dt_params = json.load(f)
-#         
-#         # currently, only updates rho value
-#         if isinstance(sensor_input, (int, float)):
-#             dt_params[0]["parameters"]["rho"] = sensor_input
-#             
-#             with open(self.dt_path, 'w') as file:
-#                 json.dump(dt_params, file, indent=4)
-#             return True
-#         else:
-#             return False
-# =============================================================================
-#%%
 
     def update_parameters(self, updates, target_name=None):
         """
-        Updates the specified parameters in the JSON file.
+        Updates the specified parameters in the digital twin parameter file 
+        (JSON format).
+        
+        Args:
+            updates (dict): A dictionary containing parameters to be updated 
+            (key: value).
+            target_name (str): The name of the model whose parameters need to 
+            be updated (optional).
+        
+
         """
         try:
             with open(self.dt_path, 'r') as f:
@@ -138,9 +179,19 @@ class DisplacementModel(BaseModel):
             print(f"An error occurred: {e}")
             return False
 
-#%%
     def solve(self):
+        """
+        Reloading, model generating and solving model.
+        
+        With use of callback() methods, ceratin methods are called in each step 
+        of moving load case.
+        
+        TODO:
+            The re-loading of the model can be avoidede by recalculating and 
+            modifying the values in the constant fields of the Lamé constants
+            
 
+        """
         self.LoadGeometry()
         self.GenerateModel()
         self.GenerateData()
