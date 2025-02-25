@@ -30,11 +30,16 @@ class API_Request:
             "Content-Type": "application/json"
             }
         self.params = {
-            "code": open(secrets_location).read().strip()    # der Code aus den über Keeper mitgetielten Zugangdaten 
+            "code": open(secrets_location).read().strip(),    # der Code aus den über Keeper mitgetielten Zugangdaten         
         }  
+                
+        now = datetime.utcnow()
+        start_time = now - timedelta(weeks=1)
+        end_time = start_time + timedelta(days=5)
+
         self.body = {
-            "startTime": "2023-08-11T08:00:00Z",
-            "endTime": "2023-08-11T09:00:00Z",
+            "startTime": start_time.isoformat() + "Z",
+            "endTime": end_time.isoformat() + "Z",
             "meta_channel": True,
             "columns": [
              'E_plus_080DU_HSN-o-_Avg1',
@@ -42,6 +47,7 @@ class API_Request:
              ]
             }
         
+        # Body for requesting data of all the sensors
         """
         self.body = {
             "startTime": "2023-08-11T08:00:00Z",
@@ -73,6 +79,7 @@ class API_Request:
             }
         """
 
+        # Sensors
         """
         TU: Temperaturmessung des Überbaus
         LI: Luftfeuchtigkeit im Inneren des Hohlkastens
