@@ -63,7 +63,7 @@ class OrchestratorManager:
                 )
                 fig.add_trace(go.Scatter(x=timestamps, y=interp_virtual_values, mode='lines', name=f"{column}_virtual", line=dict(dash="dash")))
 
-            fig.add_trace(go.Scatter(x=timestamps, y=column_values, mode='lines', name=column))
+            #fig.add_trace(go.Scatter(x=timestamps, y=column_values, mode='lines', name=column))
 
         # Update the layout for the graph
         fig.update_layout(title="Displacement Over Time", xaxis_title="Time", yaxis_title="Displacement")
@@ -100,8 +100,6 @@ async def run_computation(params: Parameters):
     except Exception as e:
         error_trace = traceback.format_exc()
         raise HTTPException(status_code=500, detail=f"Computation error: {str(e)}\n{error_trace}")
-    
-from fastapi.responses import HTMLResponse
 
 @app.get("/create_graph", response_class=HTMLResponse)
 async def create_graph():
@@ -117,7 +115,7 @@ async def create_graph():
         graph_with_button_html = f"""
         <html>
             <head>
-                <meta http-equiv="refresh" content="30">
+                <meta http-equiv="refresh" content="100">
             </head>
             <body>
                 <h2>Graph Display</h2>

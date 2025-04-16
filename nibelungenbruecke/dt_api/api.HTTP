@@ -7,8 +7,9 @@ POST http://127.0.0.1:8000/run_computation
 Content-Type: application/json
 
 {
-  "input_value": {"rho": 2050},
-  "model_to_run": "Displacement_1"
+  "input_value": {"rho": 2150},
+  "model_to_run": "Displacement_1",
+  "model_to_run": "TransientThermal_1"
 }
 
 

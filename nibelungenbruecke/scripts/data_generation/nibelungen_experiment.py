@@ -27,12 +27,14 @@ class NibelungenExperiment(Experiment):
         self.model_path = model_path
         
         default_p = Parameters()
-        #default_p.update(parameters)
-        #default_p.update(self.material_parameters)
+        #default_p.update(self._experience_default_parameters())
+        default_p.update(self._experience_default_parameters())
+        
+
         for key, value in self.material_parameters.items():
-            default_p[key] = value * ureg.dimensionless
-        
-        
+            if key in default_p:
+                default_p[key] = value * default_p[key].units
+
         super().__init__(default_p)
         
         self.dt = model_parameters["dt"]
@@ -71,25 +73,84 @@ class NibelungenExperiment(Experiment):
 
         
     def setup(self):
+        """
         try:
             ##TODO: self.mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(self.model_path, MPI.COMM_WORLD, 0)
             self.mesh, cell_tags, facet_tags = df.io.gmshio.read_from_msh(self.model_path, MPI.COMM_WORLD, 0)
             pass
         except Exception as e:
             raise Exception(f"An error occurred during mesh setup: {e}")
+        """
+        """defines the mesh for 2D or 3D
+
+        Raises:
+            ValueError: if dimension (self.p["dim"]) is not 2 or 3
+        """
+        if self.p["geometry"] == "box":
+            if self.p["dim"] == 2:
+                self.mesh = df.mesh.create_rectangle(
+                    comm=MPI.COMM_WORLD,
+                    points=[(0.0, 0.0), (self.p["length"], self.p["height"])],
+                    n=(self.p["num_elements_length"], self.p["num_elements_height"]),
+                    cell_type=df.mesh.CellType.quadrilateral,
+                )
+            elif self.p["dim"] == 3:
+                self.mesh = df.mesh.create_box(
+                    comm=MPI.COMM_WORLD,
+                    points=[
+                        (0.0, 0.0, 0.0),
+                        (self.p["length"], self.p["width"], self.p["height"]),
+                    ],
+                    n=[
+                        self.p["num_elements_length"],
+                        self.p["num_elements_width"],
+                        self.p["num_elements_height"],
+                    ],
+                    cell_type=df.mesh.CellType.hexahedron,
+                )
+            else:
+                raise ValueError(f'wrong dimension: {self.p["dim"]} is not implemented for problem setup')
+        elif self.p["geometry"] == "gmsh":
+            self.mesh, self.cell_tags, self.facet_tags = df.io.gmshio.read_from_msh(
+                self.model_path, MPI.COMM_WORLD, 0, self.p["dim"]
+            )
+            # DEBUG MESH TAGS
+            # with df.io.XDMFFile(self.mesh.comm, "ft.xdmf", "w") as xdmf:
+            #     xdmf.write_mesh(self.mesh)
+            #     xdmf.write_meshtags(self.facet_tags)
+        else:
+            raise ValueError(f'wrong geometry: {self.p["geometry"]} is not implemented for problem setup')
+
 
     @staticmethod
     def default_parameters() -> dict[str, pint.Quantity]:
+        """sets up a working set of parameter values as example
+
+        Returns:
+            dictionary with a working set of the required parameter
+
+        """
         setup_parameters = {}
         setup_parameters["load"] = 1000 * ureg("N/m^2")
-        setup_parameters["height"] = 0.3 * ureg("m")    #TODO:
-        setup_parameters["length"] = 70 * ureg("m")
-        setup_parameters["dim"] = 3 * ureg("")
-        setup_parameters["width"] = 0.3 * ureg("m")  # only relevant for 3D case
-        setup_parameters["num_elements_length"] = 10 * ureg("")
-        setup_parameters["num_elements_height"] = 3 * ureg("")
+        #setup_parameters["height"] = 0.3 * ureg("m")    #TODO:
+        #setup_parameters["length"] = 70 * ureg("m")
+        #setup_parameters["dim"] = 3 * ureg("")
+        #setup_parameters["width"] = 0.3 * ureg("m")  # only relevant for 3D case
+        #setup_parameters["num_elements_length"] = 10 * ureg("")
+        #setup_parameters["num_elements_height"] = 3 * ureg("")
         # only relevant for 3D case
-        setup_parameters["num_elements_width"] = 3 * ureg("")
+        #setup_parameters["num_elements_width"] = 3 * ureg("")
+
+        # Thermal model parameters
+        #setup_parameters["geometry"] = "box" * ureg("")
+        setup_parameters["geometry"] = "gmsh" * ureg("")
+        setup_parameters["length"] = 100 * ureg("m")
+        setup_parameters["height"] = 15 * ureg("m")
+        setup_parameters["width"] = 2 * ureg("m")  # only relevant for 3D case
+        setup_parameters["dim"] = 3 * ureg("")
+        setup_parameters["num_elements_length"] = 20 * ureg("")
+        setup_parameters["num_elements_height"] = 5 * ureg("")
+        setup_parameters["num_elements_width"] = 5 * ureg("")  # only relevant for 3D case
 
         return setup_parameters
     
@@ -115,6 +176,23 @@ class NibelungenExperiment(Experiment):
         }
 
         return default_parameters
+    
+                    
+    @staticmethod
+    def _experience_default_parameters():
+        """
+        Get default material parameters.
+
+        Returns:
+            dict: Default material parameters.
+        """
+        default_parameters = {
+            "rho":7750 * ureg("kg/m^3"),
+            "E":210e9 * ureg("N/m^2"),
+            "nu":0.28 * ureg("")
+        }
+        return default_parameters
+    
 
     
     def create_displacement_boundary(self, V) -> list:
@@ -160,6 +238,34 @@ class NibelungenExperiment(Experiment):
             #bc_generator.add_dirichlet_bc(np.float64(0.0), self.boundary_right(), 2, "geometrical", 0)
             
         return bc_generator.bcs
+    
+    def create_temperature_boundary(self, V) -> list:
+        """defines temperature boundary as fixed at bottom
+
+        Args:
+            V: function space
+
+        Returns:
+            list of dirichlet boundary conditions
+
+        """
+
+        # fenics will individually call this function for every node and will note the true or false value.
+        temperature_bcs = []
+        max_x = max(vertex[0] for vertex in self.mesh.geometry.x)
+        def clamped_boundary(x):
+            return np.logical_or(np.isclose(x[0], 0),np.isclose(x[0], max_x))
+
+
+        temperature_bcs.append(
+            df.fem.dirichletbc(
+                np.array(np.float64(293.0), dtype=ScalarType),
+                df.fem.locate_dofs_geometrical(V, clamped_boundary),
+                V,
+            )
+        )
+
+        return temperature_bcs
     
     def boundary_left(self) -> Callable:
         """specifies boundary at bottom

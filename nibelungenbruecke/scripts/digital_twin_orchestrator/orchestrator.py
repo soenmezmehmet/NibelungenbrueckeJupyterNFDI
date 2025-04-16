@@ -96,13 +96,12 @@ class Orchestrator:
         print("Prediction:", prediction)
 
 #%%
-if __name__ == "__main__":
-    path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   
-    model_to_run = "Displacement_2"
-    orchestrator = Orchestrator(path, model_to_run)
 
-    #input_value=[round(2.0*10**11, 1), round(2.7*10**11, 1), round(3.4*10**11, 1), round(4.0*10**11, 1)]
-    #input_value=round(2.0*10**11, 1)
+if __name__ == "__main__":
+    
+    path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   
+    model_to_run = "TransientThermal_1"
+    orchestrator = Orchestrator(path, model_to_run)
     
     import random
 
@@ -127,20 +126,53 @@ if __name__ == "__main__":
     input_value=generate_random_rho()
     print(input_value)
 
-    #orchestrator.run(input_value, model_to_run)
-      
-# #####
-
-    model_to_run = "Displacement_1"
-    input_value=generate_random_rho(input_value, parameters="E")
-    print(input_value)
+    orchestrator.run(input_value, model_to_run)
     
-    orchestrator.run(input_value, model_to_run) 
-    
-# #####
-
-#     model_to_run = "Displacement_3"
-#     input_value_04=generate_random_rho()
-#     print(input_value_04)
-
+#%%    
+# =============================================================================
+#     model_to_run = "Displacement_1"
+#     #orchestrator = Orchestrator(path, model_to_run)
+#     input_value=generate_random_rho()
+#     print(input_value)
+# 
 #     orchestrator.run(input_value, model_to_run)
+# 
+# =============================================================================
+#%%
+    
+    
+    
+    
+    
+    
+    
+#%%
+# =============================================================================
+#     path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   
+#     model_to_run = "Displacement_2"
+#     orchestrator = Orchestrator(path, model_to_run)
+# 
+#     #input_value=[round(2.0*10**11, 1), round(2.7*10**11, 1), round(3.4*10**11, 1), round(4.0*10**11, 1)]
+#     #input_value=round(2.0*10**11, 1)
+#     
+# 
+#     #orchestrator.run(input_value, model_to_run)
+#       
+# # #####
+# 
+#     model_to_run = "Displacement_1"
+#     input_value=generate_random_rho(input_value, parameters="E")
+#     print(input_value)
+#     
+#     orchestrator.run(input_value, model_to_run) 
+#     
+# # #####
+# 
+# #     model_to_run = "Displacement_3"
+# #     input_value_04=generate_random_rho()
+# #     print(input_value_04)
+# 
+# #     orchestrator.run(input_value, model_to_run)
+# 
+# 
+# =============================================================================

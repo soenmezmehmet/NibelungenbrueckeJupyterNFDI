@@ -42,8 +42,10 @@ class API_Request:
             "endTime": end_time.isoformat() + "Z",
             "meta_channel": True,
             "columns": [
-             'E_plus_080DU_HSN-o-_Avg1',
-             'E_plus_080DU_HSN-u-_Avg1'
+             "F_plus_000TA_KaS-o-_Avg1", 
+             "F_plus_000S_KaS-o-_Avg1", 
+             "E_plus_040TU_HS--u-_Avg1", 
+             "E_plus_040TI_HSS-u-_Avg"
              ]
             }
         
@@ -416,6 +418,7 @@ class Translator:
                         sensor_data["type"] = "TemperatureSensor"
                         sensor_data["sensor_file"] = "temperature_sensor"
                         sensor_data["units"] = "kelvin"
+                        sensor_data["dimensionality"] = "[temperature]"
                 
                     elif key == "Move":
                         sensor_data["type"] = "DisplacementSensor"
