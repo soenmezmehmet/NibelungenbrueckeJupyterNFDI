@@ -1,14 +1,14 @@
 import json
-import importlib
 import time
 import pickle
-from tqdm import tqdm
+import importlib
 import numpy as np
-
+from tqdm import tqdm
 import dolfinx as df
+import matplotlib.pyplot as plt
+
 from fenicsxconcrete.util import ureg
-from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
-from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator_temperature import LinearElasticityNibelungenbrueckeDemonstratorThermal
+from fenicsxconcrete.finite_element_problem.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
 
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
@@ -53,8 +53,8 @@ class ThermalModel(BaseModel):
         
         """
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
-        self.problem = LinearElasticityNibelungenbrueckeDemonstratorThermal(
-            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters)
+        self.problem = ThermoMechanicalNibelungenBrueckeProblem(
+            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters, pv_path=self.model_parameters["paraview_output_path"])
         
     def GenerateData(self):
         """
@@ -67,7 +67,7 @@ class ThermalModel(BaseModel):
         self.api_dataFrame = self.api_request.fetch_data()
 
         metadata_saver = MetadataSaver(self.model_parameters, self.api_dataFrame)
-        metadata_saver.saving_metadata()
+        metadata_saver.saving_metadata()    ##TODO:
 
         self.translator = Translator(self.model_parameters)
         self.translator.translator_to_sensor(self.experiment.mesh)
@@ -77,9 +77,7 @@ class ThermalModel(BaseModel):
         
     def SolveMethod(self):
         """
-       Solves the model using a dynamic solver.
-       
-       This method is called during the solution process of the displacement model.
+       Solves the model
        """
         #self.problem.dynamic_solve()        ##TODO: change the name!
         
@@ -89,6 +87,11 @@ class ThermalModel(BaseModel):
         #    self.problem.solve()
         #    time += 1
         #    tqdm.write(f"Progress: {time}/190")
+        
+        database = {
+            "real_sensor_data": {},
+            "virtual_sensor_data": {}
+        }
 
         data = self.api_dataFrame
 
@@ -108,11 +111,55 @@ class ThermalModel(BaseModel):
             # print(problem.air_temperature.value)
             self.problem.solve()
             i+=1
+            
             #%%
-            if i == 10:
-                break
+            
+            for sensor_id in data.columns:
+                database["real_sensor_data"].setdefault(sensor_id, [])
+                database["virtual_sensor_data"].setdefault(sensor_id, [])
+                
+                database["real_sensor_data"][sensor_id].append(data_point[sensor_id])
+
+                # Append virtual sensor data
+                temperature_value = self.problem.sensors.get(sensor_id, None)
+                if temperature_value is not None:
+                    temperature_value_list = temperature_value.data[-1].tolist()
+                    database["virtual_sensor_data"][sensor_id].append(temperature_value_list)
+            
+            #%%
+         
+            #if i == 10:
+            #    self.plot_all_sensors_together(database)
+        self.plot_all_sensors_together(database)
+            
+    # PLot for testing!! Will be removed!    
+    def plot_all_sensors_together(self, database):
+        real_data = database["real_sensor_data"]
+        virtual_data = database["virtual_sensor_data"]
+    
+        plt.figure(figsize=(12, 6))
+        for sensor_id in real_data:
+            # Real sensor data
+            real_values = real_data[sensor_id]
+    
+            # Virtual sensor data (flatten lists)
+            virtual_values = [v[0] if isinstance(v, list) else v for v in virtual_data[sensor_id]]
+    
+            # Plot real and virtual on same graph with different styles
+            plt.plot(real_values, label=f"{sensor_id} - Real", linestyle='-')
+            plt.plot(virtual_values, label=f"{sensor_id} - Virtual", linestyle='--')
+    
+        plt.title("Sensor Data: Real vs Virtual (All Sensors)")
+        plt.xlabel("Timestep")
+        plt.ylabel("Sensor Value")
+        plt.legend(loc='best')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+ 
+
 #%%
-       
     def PostAPIData(self):
         """
         Saving data of virtual sensor' after the model solve
@@ -210,58 +257,8 @@ class ThermalModel(BaseModel):
         self.LoadGeometry()
         self.GenerateModel()
         self.GenerateData()
-        #self.ParaviewFirstRun()
         self.SolveMethod()
-        #self.PostAPIData()
-        
-        #%%
-        
-        displacement_sensors_list = []
-        VS_data = dict()
-        for sensor_id in displacement_sensors_list:
-            displacement_value = self.problem.sensors.get(sensor_id, None)
-            displacement_value_list = displacement_value.data[-1].tolist()
-            if sensor_id not in VS_data["virtual_sensors"]:
-                VS_data["virtual_sensors"][sensor_id] = {"displacements": []}
-            VS_data["virtual_sensors"][sensor_id]["displacements"].append(displacement_value_list)
-            
-        
-        temperature_sensors_list = ["F_plus_000TA_KaS-o-_Avg1"]
-        VS_data = dict()
-        for sensor_id in temperature_sensors_list:
-            temperature_value = self.problem.sensors.get(sensor_id, None)
-            temperature_value_list = temperature_value.data[-1].tolist()
-            print(temperature_value_list)
-        
-        
-        #%%
-                
-        
- 
-# =============================================================================
-#         vs_file_path = self.model_parameters["virtual_sensor_added_output_path"]
-#         with open(vs_file_path, 'r') as file:
-#             self.vs_data = json.load(file)        
-#         
-#         print(f'E_plus_413TU_HS--u-_Avg1: {self.sensor_out_01}')
-#         print(f'E_plus_040TU_HS--o-_Avg1: {self.sensor_out}')
-# =============================================================================
-        
-        
-        #self.sensor_out = self.api_dataFrame['E_plus_080DU_HSN-u-_Avg1'].iloc[-1] # *1000 #Convertion from meter to milimeter
-        #self.sensor_out = self.api_dataFrame['E_plus_413TU_HSS-m-_Avg1'].iloc[-1]
-        #self.sensor_out_01 = self.api_dataFrame['E_plus_413TU_HS--u-_Avg1'].iloc[-1]
-        #self.sensor_out = self.api_dataFrame['E_plus_040TU_HS--o-_Avg1'].iloc[-1]
-        
-        #self.ParaviewProcess()
-        
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HSS-m-_Avg1']['displacements'][-1][0]
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HS--u-_Avg1']['displacements'][-1][0]
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_040TU_HS--o-_Avg1']['displacements'][-1][0]
-        
-#%%
-
+  
 
     def export_output(self, path: str): #TODO: json_path as a input parameters!! -> Changes' been done!
         #json_path = "output_data.json" #TODO: move to json file

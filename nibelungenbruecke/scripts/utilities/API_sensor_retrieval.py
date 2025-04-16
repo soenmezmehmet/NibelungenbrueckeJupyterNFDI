@@ -324,6 +324,16 @@ class MetadataSaver:
                 "coordinate": [1, 0.0, 0.0],
                 "height": 104.105                       
             })
+                
+            elif self.df.columns[i] == 'F_plus_000S_KaS-o-_Avg1':   ##TODO: copy and pasted from another sensor!! Not correct, check the plan!
+                column_name = self.df.columns[i]
+                self.data["meta"]["Temp"].append({
+                "name": column_name,
+                "unit": "\u00b0C",
+                "sample_rate": 0.0016666666666666668,   
+                "coordinate": [1, 0.0, 0.0],
+                "height": 107.438                       
+            })
 
             elif self.df.columns[i] == 'E_plus_445LVU_HS--o-_Avg1':
                 column_name = self.df.columns[i]

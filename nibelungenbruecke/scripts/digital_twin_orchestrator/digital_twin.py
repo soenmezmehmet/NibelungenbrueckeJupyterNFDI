@@ -9,7 +9,6 @@ import dolfinx as df
 from mpi4py import MPI
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache import ObjectCache
-from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
 
 class DigitalTwin:
     """
@@ -39,7 +38,7 @@ class DigitalTwin:
         self.cache_object = ObjectCache()
         self.digital_twin_models = {}
     
-    def _extract_model_parameters(self, path):      ##TODO: make this to adapt the older 
+    def _extract_model_parameters(self, path):
         """
         Loads parameters from a JSON file.
         
@@ -86,7 +85,7 @@ class DigitalTwin:
         if not self._set_model():
             #self.digital_twin_model = self._initialize_default_model()  ##TODO:
             #return 
-            raise f"There is not any predefined model with {self.model_to_run}. Please check the name or add model parameters"
+            raise f"There isn't any predefined model with name {self.model_to_run}. Please check the name or add the model to model parameters"
             
         # Load cached parameters or default parameters if cache is missing
         if self.model_to_run not in self.digital_twin_models.keys():
@@ -95,13 +94,14 @@ class DigitalTwin:
         else:
             self.initial_model = self.digital_twin_models[self.model_to_run]
             
-        # Update model parameters if necessary
+        # Updates model parameters if necessary
         updated, updated_params = self.initial_model.update_parameters(input_value, self.model_to_run)
         if updated:
             self._update_cached_model(self._loaded_params, updated_params)  # updates model parameters w.r.t. new input data!
             self._run_model()
         else:
-            return ("Same model with the same parameters!!") ##TODO: Raise or Pass
+            print()
+            return ("Same model with the same parameters!!")
             
         return self.initial_model
     
@@ -123,7 +123,7 @@ class DigitalTwin:
                 rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
                 self.cache_model_path = rel_path + model_info["path"]
                 return True
-        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: It doesn't create objects/their initializing parameters if it's not in the predefined json!! 
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")
     
     def _get_or_load_parameters(self):
         """
@@ -160,7 +160,7 @@ class DigitalTwin:
         
         digital_twin_model = None
         for i in self._models:
-            if i["name"] == self.model_to_run:
+            if i["name"] == self.model_to_run:      ##TODO: work on the default_parameter JSON file!!
                 if "TransientThermal" in self.model_to_run:
                     model_path = self.cache_object.cache_model["model_path"][0]["transientthermal_model_path"]
                 elif "Displacement" in self.model_to_run:
@@ -194,13 +194,12 @@ class DigitalTwin:
          
     def _run_model(self):
         """
-        Uploads the latest saved model parameters and assigns them to the active model.
+        Extracts latest version of the model that saved last time.
         
         This provides flexibility to switch between different models, allowing for the assignment 
         of field data without having to recreate the models from scratch.
         
         """
-        #self.initial_model.fields_data_storer(self.model_to_run)  # TODO: Make conditional based on changes
         self.uploader()
         self.initial_model.fields_assignment(self.model_params)
         self.initial_model.solve()
