@@ -1,3 +1,4 @@
+import os
 import sys
 import ufl
 import json
@@ -7,6 +8,7 @@ import importlib
 import numpy as np
 import dolfinx as df
 from mpi4py import MPI
+from pathlib import Path
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache import ObjectCache
 
@@ -66,9 +68,13 @@ class DigitalTwin:
         try:
             with open(dt_params_path, 'r') as json_file:
                 self._models = json.load(json_file)
-                
         except Exception as exc:
-            raise RuntimeError('Failed to open the path!') from exc
+            try:
+                dt_params_path = dt_params_path.strip("../")
+                with open(dt_params_path, 'r') as json_file:
+                    self._models = json.load(json_file)
+            except:
+                raise RuntimeError('Failed to open the path!') from exc
         
     def predict(self, input_value, model_to_run):
         """
@@ -170,8 +176,27 @@ class DigitalTwin:
                     
                 model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
                 dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
+                try:
+                    # Try importing without changing path
+                    module = importlib.import_module(i["type"])
+                    print("Module imported (without changing path):", module)
                 
-                module = importlib.import_module(i["type"])
+                except ModuleNotFoundError:
+                    try:
+                        # Compute relative path from current script's location (__file__)
+                        base_dir = Path(__file__).parent.resolve()  # folder where this script lives
+                        #relative_path = base_dir / "nibelungenbruecke" / "scripts" / "digital_twin_orchestrator"
+                        
+                        #os.chdir(relative_path)
+                        os.chdir(base_dir)
+                        print("Changed directory to:", os.getcwd())
+                        
+                        module = importlib.import_module(i["type"])
+                        print("Module imported (after changing relative path):", module)
+                
+                    except Exception as e:
+                        raise ImportError(f"Module '{i['type']}' could not be imported even after changing relative path.") from e
+                        
                 digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
                 digital_twin_model.GenerateModel()
                 
