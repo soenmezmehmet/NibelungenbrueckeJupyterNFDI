@@ -189,9 +189,13 @@ class DigitalTwin:
                         
                         #os.chdir(relative_path)
                         os.chdir(base_dir)
+                        print(base_dir)
                         print("Changed directory to:", os.getcwd())
-                        
+
+                        if str(base_dir) not in sys.path:
+                            sys.path.insert(0, str(base_dir))
                         module = importlib.import_module(i["type"])
+
                         print("Module imported (after changing relative path):", module)
                 
                     except Exception as e:
