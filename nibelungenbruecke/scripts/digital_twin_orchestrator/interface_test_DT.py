@@ -2,8 +2,9 @@ import random
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator import Orchestrator
 
 class DigitalTwinInterface:
-    def __init__(self):
-        self.parameters_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json'
+    def __init__(self, path):
+        #self.parameters_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json'
+        self.parameters_path = path
         self.available_models = ["TransientThermal_1", "Displacement_1", "Displacement_2"]
         self.current_model = self.available_models[0]
         self.orchestrator = Orchestrator(self.parameters_path, self.current_model)

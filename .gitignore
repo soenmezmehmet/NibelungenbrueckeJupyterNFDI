@@ -165,3 +165,7 @@ use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/senso
 
 ### fenicsxconcrete_demonstrator test
 tests/test_orchestrator/test_orchestrator.py
+
+##
+environment_backup.yml
+
