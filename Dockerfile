@@ -13,9 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Switch back to the default user
 USER ${NB_UID}
 
-RUN mamba env create -f binder/environment.yml && \
+RUN mamba env create -f environment.yml && \
     conda clean --all -f -y && \
-    echo "conda activate as" >> ~/.bashrc
+    echo "conda activate demonstrator" >> ~/.bashrc
 
 # Set default environment
 ENV CONDA_DEFAULT_ENV=demonstrator
