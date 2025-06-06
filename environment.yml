@@ -1,0 +1,14 @@
+name: demo
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - conda-forge::fenics-dolfinx=0.6.0
+  - mpi
+  - pandas
+  - arviz
+  - h5py
+  - pytest
+  - numpy=1.23.5
+  - petsc4py=3.17.4
+prefix: /home/msoenmez/miniconda3/envs/demo
