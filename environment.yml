@@ -10,3 +10,4 @@ dependencies:
   - scipy
   - pip
 pip:
+  - git+https://github.com/BAMresearch/FenicsXConcrete
