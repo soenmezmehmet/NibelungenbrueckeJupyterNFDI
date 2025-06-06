@@ -1,3 +1,4 @@
+name: demonstrator
 channels:
   - conda-forge
 dependencies:
