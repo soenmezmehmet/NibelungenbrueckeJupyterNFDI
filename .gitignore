@@ -168,4 +168,5 @@ tests/test_orchestrator/test_orchestrator.py
 
 ##
 environment_backup.yml
+nibelungenbruecke.yml
 
