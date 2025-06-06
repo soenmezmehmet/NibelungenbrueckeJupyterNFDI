@@ -7,9 +7,6 @@ dependencies:
   - mpich
   - pyvista[all]
   - scipy
-  - pytest
-  - pint
-  - gmsh
   - pip
 pip:
   - git+https://github.com/BAMresearch/FenicsXConcrete
