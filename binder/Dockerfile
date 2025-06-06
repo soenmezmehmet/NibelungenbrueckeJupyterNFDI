@@ -15,12 +15,12 @@ USER ${NB_UID}
 
 RUN mamba env create -f binder/environment.yml && \
     conda clean --all -f -y && \
-    echo "conda activate fenicsx-env" >> ~/.bashrc
+    echo "conda activate demonstrator" >> ~/.bashrc
 
 # Set default environment
-ENV CONDA_DEFAULT_ENV=fenicsx-env
-ENV PATH=/opt/conda/envs/fenicsx-env/bin:$PATH
+ENV CONDA_DEFAULT_ENV=demonstrator
+ENV PATH=/opt/conda/envs/demonstrator/bin:$PATH
 
 # Ensure Jupyter picks up correct Python/kernel
 RUN pip install ipykernel
-RUN conda run -n fenicsx-env python -m ipykernel install --user --name=fenicsx-env --display-name "Python (fenicsx-env)"
+RUN conda run -n demonstrator python -m ipykernel install --user --name=demonstrator --display-name "Python (demonstrator)"
