@@ -15,7 +15,7 @@ USER ${NB_UID}
 
 RUN mamba env create -f binder/environment.yml && \
     conda clean --all -f -y && \
-    echo "conda activate demonstrator" >> ~/.bashrc
+    echo "conda activate as" >> ~/.bashrc
 
 # Set default environment
 ENV CONDA_DEFAULT_ENV=demonstrator
