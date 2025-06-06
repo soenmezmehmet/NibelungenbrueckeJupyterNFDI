@@ -26,7 +26,7 @@
         "type": "thermal_model",
         "class": "ThermalModel",
         "parameters": {
-            "rho": 2200,
+            "rho": 1900,
             "E": 250000000000,
             "nu": 0.28
         },
