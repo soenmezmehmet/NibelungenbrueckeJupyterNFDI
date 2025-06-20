@@ -9,5 +9,6 @@ dependencies:
   - pyvista[all]
   - scipy
   - pip
+  - ipykernel
 pip:
   - git+https://github.com/BAMresearch/FenicsXConcrete
