@@ -126,10 +126,10 @@ class DigitalTwin:
             if model_info["name"] == self.model_to_run:
                 self.cache_model_name = model_info["type"]
                 self.cache_object_name = model_info["class"]
-                rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/"
+                rel_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/" ##TODO:
                 self.cache_model_path = rel_path + model_info["path"]
                 return True
-        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")
+        raise ValueError(f"'{self.model_to_run}' not found in the defined models.")     ##TODO: Create a new model !!
     
     def _get_or_load_parameters(self):
         """
@@ -147,6 +147,10 @@ class DigitalTwin:
         else:
             if self.cache_object.model_name != self.cache_object_name:
                 parameters = self.cache_object.load_cache(self.cache_model_path, self.cache_model_name)
+                if not parameters:
+                    with open(self._default_parameters_path(), 'r') as file:
+                        parameters = json.load(file)
+                        
                 self.cache_object.cache_model = parameters
             else:
                 parameters = self.cache_object.cache_model
@@ -179,18 +183,13 @@ class DigitalTwin:
                 try:
                     # Try importing without changing path
                     module = importlib.import_module(i["type"])
-                    print("Module imported (without changing path):", module)
+                    print("Module imported:", module)
                 
                 except ModuleNotFoundError:
                     try:
-                        # Compute relative path from current script's location (__file__)
                         base_dir = Path(__file__).parent.resolve()  # folder where this script lives
-                        #relative_path = base_dir / "nibelungenbruecke" / "scripts" / "digital_twin_orchestrator"
                         
-                        #os.chdir(relative_path)
                         os.chdir(base_dir)
-                        print(base_dir)
-                        print("Changed directory to:", os.getcwd())
 
                         if str(base_dir) not in sys.path:
                             sys.path.insert(0, str(base_dir))
@@ -261,7 +260,12 @@ class DigitalTwin:
         Returns the default parameters file path.
         """
         default_parameters_path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
-        return default_parameters_path
+        
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(current_dir, default_parameters_path)
+        json_path = os.path.normpath(json_path)
+        
+        return json_path
    
     def store_update(self):            
         measured_vs_path = self.model_parameters["virtual_sensor_added_output_path"]

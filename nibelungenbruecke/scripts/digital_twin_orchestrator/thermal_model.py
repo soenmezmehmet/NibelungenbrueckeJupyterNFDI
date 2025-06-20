@@ -16,6 +16,7 @@ from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseM
 from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
 
+
 class ThermalModel(BaseModel):
     """
     A class representing a thermal model for NB simulations.
@@ -62,7 +63,7 @@ class ThermalModel(BaseModel):
         and saves it for use with virtual sensors.
 
         """
-        
+
         self.api_request = API_Request(self.model_parameters["secret_path"])
         self.api_dataFrame = self.api_request.fetch_data()
 
@@ -115,24 +116,26 @@ class ThermalModel(BaseModel):
             #%%
             
             for sensor_id in data.columns:
-                database["real_sensor_data"].setdefault(sensor_id, [])
-                database["virtual_sensor_data"].setdefault(sensor_id, [])
+                if sensor_id in ["F_plus_000TA_KaS-o-_Avg1", "E_plus_040TI_HSS-u-_Avg", 'F_plus_000TA_KaS-o-_Avg1', 'F_plus_000S_KaS-o-_Avg1',
+                       'E_plus_040TU_HS--u-_Avg1', 'E_plus_040TI_HSS-u-_Avg']:      ##TODO: Should be extended to consist all the temperature sensors
+                    database["real_sensor_data"].setdefault(sensor_id, [])
+                    database["virtual_sensor_data"].setdefault(sensor_id, [])
+                    
+                    database["real_sensor_data"][sensor_id].append(data_point[sensor_id])
+    
+                    # Append virtual sensor data
+                    temperature_value = self.problem.sensors.get(sensor_id, None)
+                    if temperature_value is not None:
+                        temperature_value_list = temperature_value.data[-1].tolist()
+                        database["virtual_sensor_data"][sensor_id].append(temperature_value_list)
                 
-                database["real_sensor_data"][sensor_id].append(data_point[sensor_id])
-
-                # Append virtual sensor data
-                temperature_value = self.problem.sensors.get(sensor_id, None)
-                if temperature_value is not None:
-                    temperature_value_list = temperature_value.data[-1].tolist()
-                    database["virtual_sensor_data"][sensor_id].append(temperature_value_list)
-            
             #%%
          
-            #if i == 10:
-            #    self.plot_all_sensors_together(database)
+            if i == 10:
+                break
+            #%%
         self.plot_all_sensors_together(database)
             
-    # PLot for testing!! Will be removed!    
     def plot_all_sensors_together(self, database):
         real_data = database["real_sensor_data"]
         virtual_data = database["virtual_sensor_data"]

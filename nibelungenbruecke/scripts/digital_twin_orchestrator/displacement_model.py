@@ -55,9 +55,9 @@ class DisplacementModel(BaseModel):
         """
         
         self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
-        self.default_p.update(self.experiment.parameters)
+        #self.default_p.update(self.experiment.parameters)
         self.problem = LinearElasticityNibelungenbrueckeDemonstrator(
-            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.default_p)
+            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters)
         
     def GenerateData(self):
         """
@@ -198,14 +198,18 @@ class DisplacementModel(BaseModel):
         self.ParaviewFirstRun()
         self.SolveMethod()
         self.sensor_out = self.api_dataFrame['E_plus_080DU_HSN-u-_Avg1'].iloc[-1] # *1000 #Convertion from meter to milimeter
-        #self.sensor_out = self.api_dataFrame['E_plus_413TU_HSS-m-_Avg1'].iloc[-1]
+        #self.sensor_out = self.api_dataFrame['E_plus_040TU_HS--u-_Avg1'].iloc[-1]
  
         vs_file_path = self.model_parameters["virtual_sensor_added_output_path"]
         with open(vs_file_path, 'r') as file:
             self.vs_data = json.load(file)        
         
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_413TU_HSS-m-_Avg1']['displacements'][-1][0]
+        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_040TU_HS--u-_Avg1']['displacements'][-1][0]
         self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
+        
+        print(f"Real sensor measurement: {self.sensor_out}")
+        print(f"Virtual sensor measurement: {self.vs_sensor_out}")
+        
 
     def export_output(self, path: str): #TODO: json_path as a input parameters!! -> Changes' been done!
         #json_path = "output_data.json" #TODO: move to json file

@@ -76,7 +76,6 @@ class Orchestrator:
     def compare(self, output, input_value):
         self.updated = (output == 2 * input_value)
 
-
     def run(self, input_value, model_to_run):
         """
         Runs the digital twin model prediction.
@@ -118,6 +117,7 @@ if __name__ == "__main__":
     
     path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   
     model_to_run = "TransientThermal_1"
+    model_to_run = "Displacement_1"             ## dt = 30, time range: 2 hours, API code path is given!
     orchestrator = Orchestrator(path, model_to_run)
    
 #####  
@@ -125,4 +125,14 @@ if __name__ == "__main__":
     input_value=generate_random_rho()
     print(input_value)
 
+    #orchestrator.run(input_value, model_to_run)
+    
+#### Changing the model from Displacement_1 to TransientThermal_1!
+
+    model_to_run = "TransientThermal_1"
+    input_value=generate_random_rho()
+    print(input_value)
+
     orchestrator.run(input_value, model_to_run)
+    
+

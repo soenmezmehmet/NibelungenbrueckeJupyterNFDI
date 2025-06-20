@@ -4,8 +4,8 @@
         "type": "displacement_model",
         "class": "DisplacementModel",
         "parameters": {
-            "rho": 3000,
-            "E": 410000000000,
+            "rho": 2000,
+            "E": 330000000000,
             "nu": 0.28
         },
         "path": "Displacement_1.json"
@@ -26,8 +26,8 @@
         "type": "thermal_model",
         "class": "ThermalModel",
         "parameters": {
-            "rho": 2300,
-            "E": 220000000000,
+            "rho": 2700,
+            "E": 230000000000,
             "nu": 0.28
         },
         "path": "transientthermal.json"
