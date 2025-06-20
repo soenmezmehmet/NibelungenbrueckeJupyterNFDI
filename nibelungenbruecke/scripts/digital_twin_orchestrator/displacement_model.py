@@ -3,6 +3,9 @@ import importlib
 import time
 import pickle
 import json
+import matplotlib.pyplot as plt
+import numpy as np
+from datetime import datetime
 
 import dolfinx as df
 from fenicsxconcrete.util import ureg
@@ -198,18 +201,65 @@ class DisplacementModel(BaseModel):
         self.ParaviewFirstRun()
         self.SolveMethod()
         self.sensor_out = self.api_dataFrame['E_plus_080DU_HSN-u-_Avg1'].iloc[-1] # *1000 #Convertion from meter to milimeter
-        #self.sensor_out = self.api_dataFrame['E_plus_040TU_HS--u-_Avg1'].iloc[-1]
  
         vs_file_path = self.model_parameters["virtual_sensor_added_output_path"]
         with open(vs_file_path, 'r') as file:
             self.vs_data = json.load(file)        
         
-        #self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_040TU_HS--u-_Avg1']['displacements'][-1][0]
         self.vs_sensor_out = self.vs_data['virtual_sensors']['E_plus_080DU_HSN-u-_Avg1']['displacements'][-1][0]
         
         print(f"Real sensor measurement: {self.sensor_out}")
         print(f"Virtual sensor measurement: {self.vs_sensor_out}")
         
+        self.plot_displacement()
+        
+
+    
+    def plot_displacement(self):
+        with open(self.vs_path, 'r') as file:
+            data = json.load(file)
+    
+        timestamps = data.get("df", {}).get("index", [])
+        columns = data.get("df", {}).get("columns", [])
+        real_values = data.get("df", {}).get("data", [])
+        virtual_values = data.get("virtual_sensors", {})
+    
+        if not timestamps or not real_values or not virtual_values:
+            raise ValueError("JSON file does not contain valid time-series data.")
+    
+        # Convert timestamps to datetime objects for better plotting
+        timestamps = [datetime.fromisoformat(ts.replace("Z", "+00:00")) for ts in timestamps]
+    
+        plt.figure(figsize=(12, 6))
+    
+        for i, column in enumerate(columns):
+            column_values = [row[i] for row in real_values]
+            
+            # Plot real values
+            plt.plot(timestamps, column_values, label=f"{column} (real)", linestyle='-')
+    
+            if column in virtual_values and "displacements" in virtual_values[column]:
+                virtual_column_values = [row[1] for row in virtual_values[column]["displacements"]]
+                
+                interp_virtual_values = np.interp(
+                    np.linspace(0, len(column_values) - 1, len(column_values)),
+                    np.linspace(0, len(column_values) - 1, len(virtual_column_values)),
+                    virtual_column_values
+                )
+                
+                plt.plot(timestamps, interp_virtual_values, linestyle='--', label=f"{column} (virtual)")
+    
+            # Optionally plot the real sensor values as well
+            # plt.plot(timestamps, column_values, label=f"{column} (real)")
+    
+        plt.title("Displacement Over Time")
+        plt.xlabel("Time")
+        plt.ylabel("Displacement")
+        plt.legend()
+        plt.tight_layout()
+        plt.grid(True)
+        plt.show()
+
 
     def export_output(self, path: str): #TODO: json_path as a input parameters!! -> Changes' been done!
         #json_path = "output_data.json" #TODO: move to json file

@@ -188,17 +188,20 @@ class DigitalTwin:
                 except ModuleNotFoundError:
                     try:
                         base_dir = Path(__file__).parent.resolve()  # folder where this script lives
-                        
                         os.chdir(base_dir)
-
+                
                         if str(base_dir) not in sys.path:
                             sys.path.insert(0, str(base_dir))
+                        
                         module = importlib.import_module(i["type"])
-
-                        print("Module imported (after changing relative path):", module)
+                        print("\nModule imported:", module)
                 
                     except Exception as e:
-                        raise ImportError(f"Module '{i['type']}' could not be imported even after changing relative path.") from e
+                        # Shows full error traceback from the second failure
+                        raise ImportError(
+                            f"Module '{i['type']}' could not be imported even after adjusting the path."
+                        ) from e
+
                         
                 digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
                 digital_twin_model.GenerateModel()

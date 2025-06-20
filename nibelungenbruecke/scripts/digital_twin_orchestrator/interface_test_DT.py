@@ -32,22 +32,22 @@ class DigitalTwinInterface:
     def run_model(self):
         while True:
             print("\nCurrent model:", self.current_model)
-            action = input("Type 'run' to generate and run input, 'change' to switch model, or 'exit' to quit: ").strip().lower()
+            action = input(f"Type 'run' to generate and run: {self.current_model},'change' to switch model, or 'exit' to quit: ").strip().lower()
 
             if action == "run":
-                param = input("Enter parameter to randomize ('rho' or 'E'): ").strip()
+                param = input("\nEnter parameter to randomize ('rho' or 'E'): ").strip()
                 try:
                     input_values = self.generate_random_input(param)
-                    print(f"Generated input: {input_values}")
+                    print(f"\nGenerated input: {input_values}")
                     result = self.run(input_values)
-                    print("Run complete.")
-                    print("Result:", result)
+                    print("Run complete!")
+                    #print("Result:", result)
                 except Exception as e:
                     print("Error:", str(e))
 
             elif action == "change":
                 print(f"Available models: {', '.join(self.available_models)}")
-                new_model = input("Enter new model name -> {', '.join(self.available_models)}: ").strip()
+                new_model = input(f"Enter new model name -> {', '.join(self.available_models)}: ").strip()
                 try:
                     self.change_model(new_model)
                 except Exception as e:

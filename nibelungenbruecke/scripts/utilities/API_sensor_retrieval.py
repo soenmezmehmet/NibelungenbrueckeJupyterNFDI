@@ -58,7 +58,7 @@ class API_Request:
                     print("Invalid date format. Please enter date as YYYY-MM-DD.")
                     
         start_time = when - timedelta(weeks=1)              # Takes 1 week before the given data!
-        end_time = start_time + timedelta(days=1/12)           # Takes until 5 days after the given date!           
+        end_time = start_time + timedelta(days=5)           # Takes until 5 days after the given date!           
         
         #print(f"Time window:\n  Start: {start_time.isoformat()}Z\n  End:   {end_time.isoformat()}Z")
         print(f"Time window:\n  Start: {start_time.isoformat()[:10]}\n  End:   {end_time.isoformat()[:10]}")

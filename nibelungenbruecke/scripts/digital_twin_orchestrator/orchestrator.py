@@ -92,7 +92,7 @@ class Orchestrator:
                 
         prediction = self.predict_dt(self.digital_twin_model, input_value, model_to_run)
         #prediction = self.predict_last_week(digital_twin, input_value)     ##TODO: More flexible input type!!
-        print("Prediction:", prediction)
+        #print("Prediction:", prediction)
 
 import random
 
