@@ -1,26 +1,31 @@
 FROM quay.io/jupyter/base-notebook:notebook-7.4.3
 
+# Copy code into the notebook user's home directory
 COPY . ${HOME}
-USER root
-RUN chown -R ${NB_UID} ${HOME}
 
-# Install required system packages using apt (base-notebook is Debian-based)
+# Change ownership to the notebook user
+USER root
+RUN chown -R ${NB_UID}:${NB_GID} ${HOME}
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Switch back to the default user
+# Switch back to notebook user
 USER ${NB_UID}
 
+# Create conda environment from environment.yml
 RUN mamba env create -f environment.yml && \
     conda clean --all -f -y && \
     echo "conda activate demonstrator" >> ~/.bashrc
 
-# Set default environment
+# Set the correct environment variables
 ENV CONDA_DEFAULT_ENV=demonstrator
-ENV PATH=/opt/conda/envs/fenicsx-env/bin:$PATH
+ENV PATH=/opt/conda/envs/demonstrator/bin:$PATH
 
-# Ensure Jupyter picks up correct Python/kernel
-RUN pip install ipykernel
-RUN conda run -n demonstrator python -m ipykernel install --user --name=demonstrator --display-name "Python (demonstrator)"
+# Ensure ipykernel is available and Jupyter recognizes the new environment
+RUN /opt/conda/envs/demonstrator/bin/python -m ipykernel install --user \
+    --name=demonstrator \
+    --display-name "Python (demonstrator)"
