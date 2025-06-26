@@ -129,7 +129,7 @@ if __name__ == "__main__":
     
 #### Changing the model from Displacement_1 to TransientThermal_1!
 
-    model_to_run = "TransientThermal_1"
+    #model_to_run = "TransientThermal_1"
     input_value=generate_random_rho()
     print(input_value)
 
