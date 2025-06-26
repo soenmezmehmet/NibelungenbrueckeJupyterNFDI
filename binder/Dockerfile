@@ -7,6 +7,8 @@ RUN chown -R ${NB_UID} ${HOME}
 # Install required system packages using apt (base-notebook is Debian-based)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    libgl1 \
+    libglu1-mesa \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
