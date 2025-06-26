@@ -11,6 +11,7 @@ dependencies:
   - scipy
   - git
   - pip
+  - setuptools<81
   - pip:
     - trame_jupyter_extension
     - git+https://github.com/BAMresearch/FenicsXConcrete
