@@ -9,7 +9,9 @@ from datetime import datetime
 
 import dolfinx as df
 from fenicsxconcrete.util import ureg
-from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
+##TODO:
+# from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
+from fenicsxconcrete.finite_element_problem.linear_elasticity import LinearElasticity
 
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
