@@ -1,4 +1,4 @@
-FROM quay.io/jupyter/scipy-notebook:python-3.10
+FROM quay.io/jupyter/base-notebook:python-3.10.12
 
 COPY . ${HOME}
 USER root
