@@ -6,7 +6,7 @@ USER root
 # Install system dependencies including OpenGL libs required by dolfinx/gmsh
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libgl1-mesa-glx \
+    libgl1 \
     libxcursor1 \
     libx11-6 \
     libxrandr2 \
