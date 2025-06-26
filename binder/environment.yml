@@ -1,19 +1,12 @@
-
 name: fenicsx-env
 channels:
   - conda-forge
 dependencies:
   - python=3.10
   - fenics-dolfinx=0.6.0
-  - numpy
   - mpich
   - pyvista[all]
   - scipy
-  - git
   - pip
-  - setuptools<81
-  - pip:
-    - trame_jupyter_extension
-    - git+https://github.com/BAMresearch/FenicsXConcrete
-    - pint
-    - gmsh
+pip:
+  - trame_jupyter_extension
