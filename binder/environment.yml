@@ -4,9 +4,11 @@ channels:
 dependencies:
   - python=3.10
   - fenics-dolfinx=0.6.0
+  - numpy
   - mpich
   - pyvista[all]
   - scipy
+  - git
   - pip
 pip:
   - trame_jupyter_extension
