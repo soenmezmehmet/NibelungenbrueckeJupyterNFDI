@@ -187,7 +187,7 @@ class NibelungenExperiment(Experiment):
             "width": 1.0,
             "length_road": 90.0,
             "width_road": 10.0,
-            "dt": 75.0,
+            "dt": 5.0,
             "boundary_conditions": [{"model": "clamped_boundary", "side_coord": 0.0, "coord": 0}],
         }
 

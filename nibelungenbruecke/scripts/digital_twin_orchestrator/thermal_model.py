@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from fenicsxconcrete.util import ureg
 #from fenicsxconcrete.finite_element_problem.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
-from nibelungenbruecke.scripts.digital_twin_orchestrator.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
+from nibelungenbruecke.scripts.data_generation.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
 
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
@@ -134,8 +134,8 @@ class ThermalModel(BaseModel):
                 
             #%%
          
-            if i == 10:
-                break
+            #if i == 10:
+                #break
             #%%
         self.plot_all_sensors_together(database)
             
