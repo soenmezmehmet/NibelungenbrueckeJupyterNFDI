@@ -29,7 +29,7 @@ class DigitalTwinInterface:
     def run(self, input_dict: dict):
         return self.orchestrator.run(input_dict, self.current_model)
 
-    def run_model(self, action):
+    def run_model(self):
         while True:
             print("\nCurrent model:", self.current_model)
             print()
