@@ -19,4 +19,4 @@ dependencies:
   - git
   - pip
 pip:
-  - trame_jupyter_extension
+  - git+https://github.com/BAMresearch/FenicsXConcrete
