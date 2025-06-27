@@ -1,0 +1,69 @@
+{
+  "df": {
+    "columns": [],
+    "index": [],
+    "data": []
+  },
+  "meta": {
+    "Temp": [
+      {
+        "name": "F_plus_000TA_KaS-o-_Avg1",
+        "unit": "\u00b0C",
+        "sample_rate": 0.0016666666666666668,
+        "coordinate": [
+          1,
+          0.0,
+          0.0
+        ],
+        "height": 104.105
+      },
+      {
+        "name": "F_plus_000S_KaS-o-_Avg1",
+        "unit": "\u00b0C",
+        "sample_rate": 0.0016666666666666668,
+        "coordinate": [
+          1,
+          0.0,
+          0.0
+        ],
+        "height": 107.438
+      },
+      {
+        "name": "E_plus_040TU_HS--u-_Avg1",
+        "unit": "\u00b0C",
+        "sample_rate": 0.0016666666666666668,
+        "coordinate": [
+          4,
+          -4.74,
+          0.355
+        ],
+        "height": 102.698
+      },
+      {
+        "name": "E_plus_040TI_HSS-u-_Avg",
+        "unit": "\u00b0C",
+        "sample_rate": 0.0016666666666666668,
+        "coordinate": [
+          4,
+          -4.74,
+          0.0
+        ],
+        "height": 104.105
+      }
+    ],
+    "Move": [
+      {
+        "name": "E_plus_080DU_HSN-u-_Avg1",
+        "unit": "\u00b0C",
+        "sample_rate": 0.0016666666666666668,
+        "coordinate": [
+          80.0,
+          -4.74,
+          0.0
+        ],
+        "height": 102.698
+      }
+    ],
+    "Humidity": []
+  }
+}

@@ -11,6 +11,8 @@ from mpi4py import MPI
 from pathlib import Path
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache import ObjectCache
+from nibelungenbruecke.scripts.digital_twin_orchestrator.thermal_model import ThermalModel
+from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
 
 class DigitalTwin:
     """
@@ -180,6 +182,17 @@ class DigitalTwin:
                     
                 model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
                 dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
+
+
+                if i["type"] == "displacement_model":
+                    model_class = DisplacementModel
+                    
+                elif i["type"] == "thermal_model":
+                    model_class = ThermalModel
+                else:
+                    raise ValueError(f"Unknown model type {i['type']}")       
+
+                """
                 try:
                     # Try importing without changing path
                     module = importlib.import_module(i["type"])
@@ -189,6 +202,21 @@ class DigitalTwin:
                     try:
                         base_dir = Path(__file__).parent.resolve()  # folder where this script lives
                         os.chdir(base_dir)
+
+                        sys.path.insert(0, str(base_dir))
+                        print("sys.path AFTER:", sys.path)
+
+                        modules = []
+                        for item in os.listdir(base_dir):
+                            item_path = os.path.join(base_dir, item)
+                            # Check if it's a Python file (module) or a package folder
+                            if item.endswith('.py'):
+                                modules.append(item[:-3])  # strip .py extension
+                            elif os.path.isdir(item_path) and '__init__.py' in os.listdir(item_path):
+                                modules.append(item)  # it's a package
+                        
+                        print("Modules and packages in", base_dir)
+                        print(modules)
                 
                         if str(base_dir) not in sys.path:
                             sys.path.insert(0, str(base_dir))
@@ -201,13 +229,11 @@ class DigitalTwin:
                         raise ImportError(
                             f"Module '{i['type']}' could not be imported even after adjusting the path."
                         ) from e
-
-                        
-                digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
-                digital_twin_model.GenerateModel()
+                    """
                 
-                self.digital_twin_models[self.model_to_run] = digital_twin_model
-                return digital_twin_model
+                #digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
+                digital_twin_model = model_class(model_path, model_parameters, dt_params_path)
+                digital_twin_model.GenerateModel()
                 
         if not digital_twin_model:
             raise ValueError(f"Invalid model {digital_twin_model}. digital twin model should not be empty!")
