@@ -8,8 +8,8 @@ dependencies:
   - mpich
   - pyvista[all]
   - scipy
-  - hdf5=1.14.6
   - h5py=3.10.0
+  - hdf5>=1.14.2,<1.14.4
   - git
   - pip
 pip:
