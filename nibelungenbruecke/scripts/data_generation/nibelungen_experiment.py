@@ -111,9 +111,25 @@ class NibelungenExperiment(Experiment):
             else:
                 raise ValueError(f'wrong dimension: {self.p["dim"]} is not implemented for problem setup')
         elif self.p["geometry"] == "gmsh":
-            self.mesh, self.cell_tags, self.facet_tags = df.io.gmshio.read_from_msh(
-                self.model_path, MPI.COMM_WORLD, 0, self.p["dim"]
-            )
+            try:
+                import gmsh
+                gmsh.initialize()
+                gmsh.open(self.model_path)
+
+                self.mesh, self.cell_tags, self.facet_tags = df.io.gmshio.model_to_mesh(
+                    gmsh.model, MPI.COMM_WORLD, 0, self.p["dim"]
+                )
+                
+                gmsh.finalize()
+
+            except Exception as e:
+                print("Failed to read gmsh mesh from:", self.model_path)
+                print("Error:", e)
+                gmsh.finalize()  # Ensure finalization even if exception occurs
+                raise
+
+
+
             # DEBUG MESH TAGS
             # with df.io.XDMFFile(self.mesh.comm, "ft.xdmf", "w") as xdmf:
             #     xdmf.write_mesh(self.mesh)

@@ -7,9 +7,14 @@ dependencies:
   - numpy
   - mpich
   - pyvista[all]
+  - pytest
+  - gmsh
+  - pint
+  - jsonschema
+  - pandas
+  - pyproj
+  - tqdm
   - scipy
-  - h5py=3.10.0
-  - hdf5>=1.14.2,<1.14.4
   - git
   - pip
 pip:

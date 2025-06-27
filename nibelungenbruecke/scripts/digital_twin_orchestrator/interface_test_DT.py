@@ -13,7 +13,7 @@ class DigitalTwinInterface:
         if model_name in self.available_models:
             #self.orchestrator = Orchestrator(self.parameters_path, model_name)
             self.current_model = model_name
-            print(f"Model changed to: {self.current_model}")
+            print(f"\nModel changed to: {self.current_model}")
         else:
             raise ValueError(f"Invalid model name: {model_name}")
 
@@ -29,36 +29,39 @@ class DigitalTwinInterface:
     def run(self, input_dict: dict):
         return self.orchestrator.run(input_dict, self.current_model)
 
-    def run_model(self):
+    def run_model(self, action):
         while True:
             print("\nCurrent model:", self.current_model)
-            action = input(f"Type 'run' to generate and run: {self.current_model},'change' to switch model, or 'exit' to quit: ").strip().lower()
+            print()
+            action = input(f"\nType 'run' to generate and run: {self.current_model},'change' to switch model, or 'exit' to quit: ").strip().lower()
 
+            print(f"\nyou typed {action}")
+            
             if action == "run":
                 param = input("\nEnter parameter to randomize ('rho' or 'E'): ").strip()
                 try:
                     input_values = self.generate_random_input(param)
                     print(f"\nGenerated input: {input_values}")
                     result = self.run(input_values)
-                    print("Run complete!")
+                    print("\nRun complete!")
                     #print("Result:", result)
                 except Exception as e:
-                    print("Error:", str(e))
+                    print("\nError:", str(e))
 
             elif action == "change":
-                print(f"Available models: {', '.join(self.available_models)}")
-                new_model = input(f"Enter new model name -> {', '.join(self.available_models)}: ").strip()
+                print(f"\nAvailable models: {', '.join(self.available_models)}\n")
+                new_model = input(f"\nEnter new model name -> {', '.join(self.available_models)}: ").strip()
                 try:
                     self.change_model(new_model)
                 except Exception as e:
-                    print("Error:", str(e))
+                    print("\nError:", str(e))
 
             elif action == "exit":
-                print("Exiting interface.")
+                print("\nExiting interface.")
                 break
 
             else:
-                print("Unknown command. Please type 'run', 'change', or 'exit'.")
+                print("\nUnknown command. Please type 'run', 'change', or 'exit'.")
 
 
 #dt = DigitalTwinInterface()
