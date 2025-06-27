@@ -12,7 +12,7 @@ from fenicsxconcrete.util import ureg
 ##TODO:
 #from fenicsxconcrete.finite_element_problem.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
 #from fenicsxconcrete.finite_element_problem.linear_elasticity import LinearElasticity
-from linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
+from nibelungenbruecke.scripts.digital_twin_orchestrator.linear_elasticity_nibelungenbruecke_demonstrator import LinearElasticityNibelungenbrueckeDemonstrator
 
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
@@ -36,6 +36,7 @@ class DisplacementModel(BaseModel):
             and model-specific parameters.
             dt_path (str): Path to the digital twin parameter file (JSON format).
         """
+        
         super().__init__(model_path, model_parameters)
         
         self.model_parameters = model_parameters

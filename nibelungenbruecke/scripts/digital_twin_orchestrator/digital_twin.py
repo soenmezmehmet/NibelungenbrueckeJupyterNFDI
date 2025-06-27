@@ -183,7 +183,7 @@ class DigitalTwin:
                 model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
                 dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
 
-
+                """
                 if i["type"] == "displacement_model":
                     model_class = DisplacementModel
                     
@@ -230,10 +230,14 @@ class DigitalTwin:
                             f"Module '{i['type']}' could not be imported even after adjusting the path."
                         ) from e
                     """
+                    """
                 
-                #digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
-                digital_twin_model = model_class(model_path, model_parameters, dt_params_path)
+                digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
+                #digital_twin_model = model_class(model_path, model_parameters, dt_params_path)
                 digital_twin_model.GenerateModel()
+                
+                self.digital_twin_models[self.model_to_run] = digital_twin_model
+                return digital_twin_model
                 
         if not digital_twin_model:
             raise ValueError(f"Invalid model {digital_twin_model}. digital twin model should not be empty!")

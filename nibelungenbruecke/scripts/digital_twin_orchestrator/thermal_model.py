@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from fenicsxconcrete.util import ureg
 #from fenicsxconcrete.finite_element_problem.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
-from .thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
+from nibelungenbruecke.scripts.digital_twin_orchestrator.thermomechanical_nibelungenbruecke_demonstrator import ThermoMechanicalNibelungenBrueckeProblem
 
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
@@ -34,6 +34,8 @@ class ThermalModel(BaseModel):
             and model-specific parameters.
             dt_path (str): Path to the digital twin parameter file (JSON format).
         """
+        
+        #model_path = "use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh_3d 1.msh"
         super().__init__(model_path, model_parameters)
         
         self.dt_path = dt_path
