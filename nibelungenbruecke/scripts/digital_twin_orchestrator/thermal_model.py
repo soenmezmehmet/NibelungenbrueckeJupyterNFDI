@@ -60,14 +60,15 @@ class ThermalModel(BaseModel):
         self.problem = ThermoMechanicalNibelungenBrueckeProblem(
             [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters, pv_path=self.model_parameters["paraview_output_path"])
         
-    def GenerateData(self):
+    def GenerateData(self, api_key):
         """
         Requests data from an API, transforms it into metadata, 
         and saves it for use with virtual sensors.
 
         """
 
-        self.api_request = API_Request(self.model_parameters["secret_path"])
+        self.api_request = API_Request(api_key, start_time = self.model_parameters["API_request_start_time"], 
+                                       end_time=self.model_parameters["API_request_end_time"], time_step=self.model_parameters["API_request_time_step"])
         self.api_dataFrame = self.api_request.fetch_data()
 
         metadata_saver = MetadataSaver(self.model_parameters, self.api_dataFrame)
@@ -111,12 +112,13 @@ class ThermalModel(BaseModel):
                 "shortwave_irradiation": data_point["F_plus_000S_KaS-o-_Avg1"],
                 "calculate_shortwave_irradiation": False,
             }
-            self.problem.update_parameters(new_parameters)
+            self.problem.update_parameters(new_parameters)      ##TOD
             # print(problem.air_temperature.value)
             self.problem.solve()
             i+=1
             
             #%%
+            ##TODO:
             
             for sensor_id in data.columns:
                 if sensor_id in ["F_plus_000TA_KaS-o-_Avg1", "E_plus_040TI_HSS-u-_Avg", 'F_plus_000TA_KaS-o-_Avg1', 'F_plus_000S_KaS-o-_Avg1',
@@ -134,8 +136,8 @@ class ThermalModel(BaseModel):
                 
             #%%
          
-            #if i == 10:
-                #break
+            if i == 10:
+                break
             #%%
         self.plot_all_sensors_together(database)
             
@@ -247,7 +249,7 @@ class ThermalModel(BaseModel):
 
     
 #%%
-    def solve(self):
+    def solve(self, api_key):
         """
         Reloading, model generating and solving model.
         
@@ -262,7 +264,7 @@ class ThermalModel(BaseModel):
         """
         self.LoadGeometry()
         self.GenerateModel()
-        self.GenerateData()
+        self.GenerateData(api_key)
         self.SolveMethod()
   
 

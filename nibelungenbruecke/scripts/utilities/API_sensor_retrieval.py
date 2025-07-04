@@ -24,48 +24,39 @@ class API_Request:
         body: Request body parameters.
     """
     
-    def __init__(self, secrets_location):
+    def __init__(self, api_key, start_time, end_time, time_step):      ##TODO: time step !!!
         self.url = "https://func-70021-nibelungen-export.azurewebsites.net/samples"
         self.headers = {
             "Content-Type": "application/json"
         }
-        if secrets_location == "":
-            while True:
-                print("Connecting to sensor database...")
-                secret_code = input("\nEnter the code to connect API: ").strip()
-                if secret_code:
-                    self.params = {"code": secret_code}
-                    break
-                else:
-                    print("Secret code cannot be empty. Please try again.")
-        else:
-            with open(secrets_location) as f:
-                self.params = {"code": f.read().strip()}
-                    
-        #now = datetime.utcnow()
-        while True:
-            when_input = input("\nEnter simulation date (YYYY-MM-DD) or press Enter for today: ").strip()
-            if when_input == "":
-                when = datetime.utcnow()
-                print(f"Using current date: {when.date()}")
-                break
-            else:
-                try:
-                    when = datetime.strptime(when_input, "%Y-%m-%d")
-                    print(f"Using entered date: {when.date()}")
-                    break
-                except ValueError:
-                    print("Invalid date format. Please enter date as YYYY-MM-DD.")
-                    
-        start_time = when - timedelta(weeks=1)              # Takes 1 week before the given data!
-        end_time = start_time + timedelta(days=5)           # Takes until 5 days after the given date!           
-        
-        #print(f"Time window:\n  Start: {start_time.isoformat()}Z\n  End:   {end_time.isoformat()}Z")
-        print(f"Time window:\n  Start: {start_time.isoformat()[:10]}\n  End:   {end_time.isoformat()[:10]}")
+# =============================================================================
+#         if secrets_location == "":
+#             while True:
+#                 print("Connecting to sensor database...")
+#                 secret_code = input("\nEnter the code to connect API: ").strip()
+#                 if secret_code:
+#                     self.params = {"code": secret_code}
+#                     break
+#                 else:
+#                     print("Secret code cannot be empty. Please try again.")
+#         else:
+#             with open(secrets_location) as f:
+#                 self.params = {"code": f.read().strip()}
+# =============================================================================
+        self.params = {"code": api_key}
+        start_time = start_time
+        if not start_time:
+            start_time = datetime.utcnow()
+
+        end_time = end_time
+        if not end_time:
+            end_time = start_time + timedelta(days=5)  
+
+        #print(f"Time window:\n  Start: {start_time.isoformat()[:10]}\n  End:   {end_time.isoformat()[:10]}")
         
         self.body = {
-            "startTime": start_time.isoformat() + "Z",
-            "endTime": end_time.isoformat() + "Z",
+            "startTime": start_time,
+            "endTime": end_time,
             "meta_channel": True,
             "columns": [
              "F_plus_000TA_KaS-o-_Avg1", 

@@ -78,7 +78,7 @@ class DigitalTwin:
             except:
                 raise RuntimeError('Failed to open the path!') from exc
         
-    def predict(self, input_value, model_to_run):
+    def predict(self, input_value, model_to_run, api_key):
         """
         Predicts the outcome based on the input value by setting up and running a model.
         
@@ -98,7 +98,7 @@ class DigitalTwin:
         # Load cached parameters or default parameters if cache is missing
         if self.model_to_run not in self.digital_twin_models.keys():
             self._loaded_params = self._get_or_load_parameters()
-            self.initial_model = self._initialize_default_model()
+            self.initial_model = self._initialize_default_model(api_key)
         else:
             self.initial_model = self.digital_twin_models[self.model_to_run]
             
@@ -106,7 +106,7 @@ class DigitalTwin:
         updated, updated_params = self.initial_model.update_parameters(input_value, self.model_to_run)
         if updated:
             self._update_cached_model(self._loaded_params, updated_params)  # updates model parameters w.r.t. new input data!
-            self._run_model()
+            self._run_model(api_key)
         else:
             print()
             return ("Same model with the same parameters!!")
@@ -159,7 +159,7 @@ class DigitalTwin:
         
         return parameters
     
-    def _initialize_default_model(self):
+    def _initialize_default_model(self, api_key):
         """
         Initializes the digital twin model from the default parameters.
         
@@ -182,47 +182,42 @@ class DigitalTwin:
                     
                 model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
                 dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
-
                 """
-                if i["type"] == "displacement_model":
-                    model_class = DisplacementModel
-                    
-                elif i["type"] == "thermal_model":
-                    model_class = ThermalModel
-                else:
-                    raise ValueError(f"Unknown model type {i['type']}")       
-
+                module = importlib.import_module(i["type"])
                 """
-                try:
-                    # Try importing without changing path
-                    module = importlib.import_module(i["type"])
-                    print("Module imported:", module)
-                
-                except ModuleNotFoundError:
-                    try:
-                        base_dir = Path(__file__).parent.resolve()  # folder where this script lives
-                        os.chdir(base_dir)
-
-                        modules = []
-                        for item in os.listdir(base_dir):
-                            item_path = os.path.join(base_dir, item)
-                            # Check if it's a Python file (module) or a package folder
-                            if item.endswith('.py'):
-                                modules.append(item[:-3])  # strip .py extension
-                            elif os.path.isdir(item_path) and '__init__.py' in os.listdir(item_path):
-                                modules.append(item)
-                        if str(base_dir) not in sys.path:
-                            sys.path.insert(0, str(base_dir))
-                        
-                        module = importlib.import_module(i["type"])
-
-                
-                    except Exception as e:
-                        # Shows full error traceback from the second failure
-                        raise ImportError(
-                            f"Module '{i['type']}' could not be imported even after adjusting the path."
-                        ) from e
-
+# =============================================================================
+#                 try:
+#                     # Try importing without changing path
+#                     module = importlib.import_module(i["type"])
+#                 
+#                 except ModuleNotFoundError:
+#                     try:
+#                         base_dir = Path(__file__).parent.resolve()  # folder where this script lives
+#                         if str(base_dir) not in sys.path:
+#                             sys.path.insert(0, str(base_dir))
+# 
+#                         modules = []
+#                         for item in os.listdir(base_dir):
+#                             item_path = os.path.join(base_dir, item)
+#                             # Check if it's a Python file (module) or a package folder
+#                             if item.endswith('.py'):
+#                                 modules.append(item[:-3])  # strip .py extension
+#                             elif os.path.isdir(item_path) and '__init__.py' in os.listdir(item_path):
+#                                 modules.append(item)
+#                         
+#                         
+#                         module = importlib.import_module(i["type"])
+# 
+#                 
+#                     except Exception as e:
+#                         # Shows full error traceback from the second failure
+#                         raise ImportError(
+#                             f"Module '{i['type']}' could not be imported even after adjusting the path."
+#                         ) from e
+# =============================================================================
+                #%%                
+                module = importlib.import_module(i["type"])
+                #%%
                 
                 digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
                 digital_twin_model.GenerateModel()
@@ -244,7 +239,7 @@ class DigitalTwin:
         self.cache_object.update_store(parameters)
         self.initial_model.model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
          
-    def _run_model(self):
+    def _run_model(self, api_key):
         """
         Extracts latest version of the model that saved last time.
         
@@ -254,7 +249,7 @@ class DigitalTwin:
         """
         self.uploader()
         self.initial_model.fields_assignment(self.model_params)
-        self.initial_model.solve()
+        self.initial_model.solve(api_key)
         self.initial_model.fields_data_storer(self.model_to_run)
         
     def uploader(self):
