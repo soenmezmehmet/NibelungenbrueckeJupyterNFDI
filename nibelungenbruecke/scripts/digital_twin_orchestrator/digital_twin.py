@@ -11,8 +11,7 @@ from mpi4py import MPI
 from pathlib import Path
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator_cache import ObjectCache
-from nibelungenbruecke.scripts.digital_twin_orchestrator.thermal_model import ThermalModel
-from nibelungenbruecke.scripts.digital_twin_orchestrator.displacement_model import DisplacementModel
+
 
 class DigitalTwin:
     """

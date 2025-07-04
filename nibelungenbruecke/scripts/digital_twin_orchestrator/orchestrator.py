@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
+from digital_twin import DigitalTwin
 
 class Orchestrator:
     """
