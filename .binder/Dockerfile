@@ -25,7 +25,7 @@ RUN chown -R ${NB_UID} ${HOME}
 USER ${NB_UID}
 
 # Create conda environment from environment.yml
-RRUN mamba env create -f .binder/environment.yml && \
+RUN mamba env create -f .binder/environment.yml && \
     conda clean --all -f -y && \
     echo "conda activate fenicsx-env" >> ~/.bashrc
 
