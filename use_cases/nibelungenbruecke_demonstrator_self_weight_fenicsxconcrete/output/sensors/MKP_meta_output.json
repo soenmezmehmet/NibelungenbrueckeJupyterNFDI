@@ -7,9 +7,9 @@
             "units": "kelvin",
             "dimensionality": "[temperature]",
             "where": [
-                0.9147777777876648,
+                1.0,
                 0.0,
-                0.2644027777777778
+                0.0
             ]
         },
         {
@@ -19,9 +19,9 @@
             "units": "kelvin",
             "dimensionality": "[temperature]",
             "where": [
-                0.9147777777876648,
+                1.0,
                 0.0,
-                0.2644027777777778
+                0.0
             ]
         },
         {

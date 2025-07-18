@@ -1,6 +1,10 @@
 import json
 import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+
 from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
+from nibelungenbruecke.scripts.utilities.mesh_point_detector import query_point
 
 class Orchestrator:
     """
@@ -17,8 +21,7 @@ class Orchestrator:
        digital_twin_model (DigitalTwin): The initialized digital twin model instance.
    
     """
-    
-    #def __init__(self, model_parameters_path: str, model_to_run: str="Displacement_1"):
+
     def __init__(self, simulation_parameters):    
         """
         Initializes the Orchestrator.
@@ -28,14 +31,13 @@ class Orchestrator:
             model_to_run (str): Specifies which predefined model to execute. Defaults to "Displacement_1".
         
         """
-        #self.model_to_run = model_to_run
-        #self.model_parameters_path = model_parameters_path
-
 
         self.updated = False
         self.simulation_parameters = simulation_parameters
         self.model_to_run = simulation_parameters['model']
-        self.model_parameters_path = simulation_parameters['model_parameter_path']
+
+        self.default_parameters = self.default_parameters()
+        self.model_parameters_path = self.default_parameters['model_parameter_path']
         
         self.digital_twin_model = self._digital_twin_initializer()
         
@@ -78,15 +80,53 @@ class Orchestrator:
             if prediction is not None:
                 predictions.append(prediction)
         return predictions
+    
+
+    ##TODO: Include time steps 
+    def default_parameters(self):
+    
+        import random
+        def generate_random_parameters():
+            """
+            Generates 'rho' and 'E' values.
+            """
+            params: dict={}
+            random_value_rho = random.randint(90 // 5, 160 // 5) * 100
+            random_value_E = random.randint(100 // 5, 225 // 5) * 10**10
+            params['rho'] = random_value_rho
+            params['E'] = random_value_E
+
+            return params
+        
+        return {'model_parameter_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json',
+                'parameters': generate_random_parameters(),
+                'thermal_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/pv_output_full.h5',
+                'displacement_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/displacements.h5',
+                        }
 
     def compare(self, output, input_value):
         self.updated = (output == 2 * input_value)
         
     def set_api_key(self, key):
         self.api_key = key
+
+    def load(self, simulation_parameters):      ##this method should be checking if the virtuals sensor are in the domain of the mesh!!! Wrong implementation
+        """
+        Loads and validates simulation parameters before running.
+        Useful for checking correctness before execution.
+        """
+        required_keys = ['model', 'start_time', 'end_time']     ##TODO: 
+        missing = [key for key in required_keys if key not in simulation_parameters]
+        if missing:
+            raise ValueError(f"Missing required simulation parameters: {missing}")
         
-    def load(simulation_parameters):
-        raise
+        self.simulation_parameters = simulation_parameters
+        self.model_to_run = simulation_parameters['model']
+        self.digital_twin_model = self._digital_twin_initializer()
+        
+        print("Simulation parameters : \n")
+        print(simulation_parameters, "\n")
+
 
 
     def run(self, simulation_parameters=None):
@@ -102,77 +142,103 @@ class Orchestrator:
             model_to_run (str): Specifies which predefined model to execute.
         
         """
-                
-        #prediction = self.predict_dt(self.digital_twin_model, input_value, model_to_run)
-        #prediction = self.predict_last_week(digital_twin, input_value)     ##TODO: More flexible input type!!
-        #print("Prediction:", prediction)
 
         if simulation_parameters is None:
             simulation_parameters = self.simulation_parameters
+            
+        else:
+            self.simulation_parameters = simulation_parameters
           
-        prediction = self.predict_dt(self.digital_twin_model, simulation_parameters['parameter_update'], simulation_parameters['model'], self.api_key)
+        self.prediction = self.predict_dt(self.digital_twin_model, self.default_parameters['parameters'], simulation_parameters['model'], self.api_key)
+        
 
-
-#%%
-import random
-
-def generate_random_rho(params: dict={}, parameters: str="rho"):
-    """
-    Generates 'rho' and 'E' values.
-    """
-    if parameters == "rho":
-        #random_value = random.randint(110 // 5, 120 // 5) * 100
-        random_value = random.randint(90 // 5, 160 // 5) * 100
-    elif parameters == "E":
-        random_value = random.randint(100 // 5, 225 // 5) * 10**10
-    else:
-        raise KeyError("unexpected parameters!")
+    def plot_results_at_virtual_sensors(self):
+        virtual_sensors = {}
     
-    params[parameters] = random_value
-    return params
+        # Determine model and HDF5 path
+        if self.simulation_parameters['model'] == 'TransientThermal_1':
+            model_typ = "thermal"
+            path = self.default_parameters['thermal_h5py_path']
+        elif self.simulation_parameters['model'] == 'displacement_1':
+            model_typ = "displacement"
+            path = self.default_parameters['displacement']
+    
+        with h5py.File(path, 'r') as f:
+            geometry = f['/Mesh/mesh/geometry'][:]
+            data_group = f['/Function/temperature'] if model_typ == "thermal" else f['/Function/displacement']
+    
+            for sensor in self.simulation_parameters['virtual_sensor_positions']:
+                name = sensor['name']
+                coords = np.array([sensor['x'], sensor['y'], sensor['z']])
+    
+                projected = query_point(coords, self.prediction.problem.mesh)[0]
+                distances = np.linalg.norm(geometry - projected, axis=1)
+                nearest_node_idx = np.argmin(distances)
+                nearest_node_coord = geometry[nearest_node_idx]
+    
+                print(f"\nSensor '{name}' -> nearest node index: {nearest_node_idx}")
+                print(f"Nearest node coordinates: {nearest_node_coord}")
+    
+                # Collect time series data
+                data_over_time = {}
+                for time_str in data_group.keys():
+                    time = int(time_str)
+                    value = data_group[time_str][nearest_node_idx]
+                    if model_typ == "displacement":
+                        value = np.linalg.norm(value)  # Optional: Use vector magnitude
+                    else:
+                        value = value[0]  # scalar temperature
+                    data_over_time[time] = value
+    
+                # Save to dict
+                virtual_sensors[name] = {
+                    'coordinates': nearest_node_coord.tolist(),
+                    'data': dict(sorted(data_over_time.items()))
+                }
+    
+        # Plot results
+        for sensor_name, info in virtual_sensors.items():
+            data = info['data']
+            times = list(data.keys())
+            values = list(data.values())
+    
+            plt.figure(figsize=(8, 4))
+            plt.plot(times, values, marker='o')
+    
+            if model_typ == "thermal":
+                plt.title(f"Temperature at Virtual Sensor: {sensor_name}")
+                plt.ylabel("Temperature (°C)")
+            elif model_typ == "displacement":
+                plt.title(f"Displacement Magnitude at Virtual Sensor: {sensor_name}")
+                plt.ylabel("Displacement (m)")  # or mm, depending on units
+    
+            plt.xlabel("Time")
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+            
+            
+    def plot_results_at_real_sensors(self):
+        print("Virtual sensors to be plotted with the corresponding real sensor")
+        pass
 
-#%%
+                            
+            
+        
 
 if __name__ == "__main__":
-    
-#%%
-# =============================================================================
-#     path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"   
-#     model_to_run = "TransientThermal_1"
-#     model_to_run = "Displacement_1"             ## dt = 30, time range: 2 hours, API code path is given!
-#     orchestrator = Orchestrator(path, model_to_run)
-#    
-# #####  
-#   
-#     input_value=generate_random_rho()
-#     print(input_value)
-# 
-#     orchestrator.run(input_value, model_to_run)
-#     
-# #### Changing the model from Displacement_1 to TransientThermal_1!
-# 
-#     model_to_run = "TransientThermal_1"
-#     input_value=generate_random_rho()
-#     print(input_value)
-# 
-#     orchestrator.run(input_value, model_to_run)
-# =============================================================================
-
-#%%
     
     simulation_parameters = {
         'simulation_name': 'TestSimulation',
         'model': 'TransientThermal_1',
         'start_time': '2023-08-11T08:00:00Z',
-        'end_time': '2023-09-11T08:01:00Z',
+        'end_time': '2023-12-11T09:01:00Z',
         'time_step': '10min',
-        'model_parameter_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json',
         'virtual_sensor_positions': [
             {'x': 0.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor1'},
             {'x': 1.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
             # Note: the real sensor positions are added automatically by the interface, so you don't need to specify them here.
         ],
-        'parameter_update': {'rho': 2740, 'E': 310000000000},
         'full_field_results': False, # Set to True if you want full field results, the simulation will take longer and the results will be larger.
         'uncertainty_quantification': False, # Set to True if you want uncertainty quantification, the simulation will take longer and the results will be larger.
     }
@@ -183,25 +249,21 @@ if __name__ == "__main__":
     orchestrator.set_api_key(key)
     orchestrator.run()
     
-    #%%
+    orchestrator.plot_results_at_virtual_sensors()
+
+    ## 
+
+    virtual_sensor_positions = [
+        {'x': 1.78, 'y': 0.0, 'z': 26.91, 'name': 'Sensor1'},
+        {'x': -1.83, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
+        # Note: the real sensor positions are added automatcally by the interface, so you don't need to specify them here.
+    ]
+
+    orchestrator.simulation_parameters["virtual_sensor_positions"] = virtual_sensor_positions
+
+
+    orchestrator.plot_results_at_virtual_sensors()
+
     
-    simulation_parameters = {
-        'simulation_name': 'TestSimulation',
-        'model': 'TransientThermal_1',
-        'start_time': '2023-08-11T08:00:00Z',
-        'end_time': '2023-09-11T08:01:00Z',
-        'time_step': '10min',
-        'model_parameter_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json',
-        'virtual_sensor_positions': [
-            {'x': 0.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor1'},
-            {'x': 1.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
-            # Note: the real sensor positions are added automatically by the interface, so you don't need to specify them here.
-        ],
-        'parameter_update': {'rho': 2900, 'E': 290000000000},
-        'full_field_results': False, # Set to True if you want full field results, the simulation will take longer and the results will be larger.
-        'uncertainty_quantification': False, # Set to True if you want uncertainty quantification, the simulation will take longer and the results will be larger.
-    }
 
     orchestrator.run(simulation_parameters)
-    
-

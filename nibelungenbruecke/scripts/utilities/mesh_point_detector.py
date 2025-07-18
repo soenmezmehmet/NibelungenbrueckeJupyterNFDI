@@ -4,69 +4,39 @@ from dolfinx.io import gmshio
 from dolfinx.geometry import BoundingBoxTree, compute_collisions, compute_closest_entity, create_midpoint_tree
 
 
-def is_point_inside_cell_hardcoded(cell_geometry, point):
+from scipy.spatial import Delaunay
+
+def is_point_inside_cell(cell_geometry: np.ndarray, point: np.ndarray) -> bool:
     """
-    Check if a point is inside a specific cell using hardcoded geometric calculations.
+    Check if a point is inside a 2D or 3D convex cell by triangulation.
+
+    Supports:
+        - 2D: triangle (3 points), quadrilateral (4 points)
+        - 3D: tetrahedron (4 points), hexahedron (8 points)
 
     Args:
-        cell_geometry (np.ndarray): Coordinates of the cell's vertices (e.g., 3x3 for a triangle or 4x3 for a tetrahedron).
-        point (array-like): The coordinates of the point to check.
+        cell_geometry (np.ndarray): Shape (n_vertices, dim)
+        point (np.ndarray): Shape (dim,)
 
     Returns:
-        bool: True if the point is inside the cell, False otherwise.
+        bool: True if point is inside the convex cell, False otherwise
     """
-    point = np.array(point, dtype=np.float64)
+    point = np.asarray(point, dtype=np.float64)
+    cell_geometry = np.asarray(cell_geometry, dtype=np.float64)
 
-    # For 2D (triangle) or 3D (tetrahedron)
+    if cell_geometry.ndim != 2 or point.ndim != 1:
+        raise ValueError("Invalid input shape.")
+
     num_vertices, dim = cell_geometry.shape
+    if point.shape[0] != dim:
+        raise ValueError(f"Point must be {dim}D, got {point.shape[0]}D.")
 
-    if dim == 2 and num_vertices == 3:  # 2D Triangle
-        # Compute barycentric coordinates
-        v0 = cell_geometry[1] - cell_geometry[0]
-        v1 = cell_geometry[2] - cell_geometry[0]
-        v2 = point - cell_geometry[0]
-
-        # Compute dot products
-        dot00 = np.dot(v0, v0)
-        dot01 = np.dot(v0, v1)
-        dot02 = np.dot(v0, v2)
-        dot11 = np.dot(v1, v1)
-        dot12 = np.dot(v1, v2)
-
-        # Compute the denominator of barycentric coordinates
-        denom = dot00 * dot11 - dot01 * dot01
-        if denom == 0:
-            return False  # Degenerate triangle
-
-        # Compute barycentric coordinates
-        u = (dot11 * dot02 - dot01 * dot12) / denom
-        v = (dot00 * dot12 - dot01 * dot02) / denom
-
-        # Check if point is inside the triangle
-        return u >= 0 and v >= 0 and (u + v) <= 1
-
-    elif dim == 3 and num_vertices == 4:  # 3D Tetrahedron
-        # Define vectors for the edges of the tetrahedron
-        v0 = cell_geometry[1] - cell_geometry[0]
-        v1 = cell_geometry[2] - cell_geometry[0]
-        v2 = cell_geometry[3] - cell_geometry[0]
-        v = point - cell_geometry[0]
-
-        # Compute determinants
-        d0 = np.linalg.det([v0, v1, v2])
-        if d0 == 0:
-            return False  # Degenerate tetrahedron
-
-        # Compute barycentric coordinates
-        d1 = np.linalg.det([v, v1, v2]) / d0
-        d2 = np.linalg.det([v0, v, v2]) / d0
-        d3 = np.linalg.det([v0, v1, v]) / d0
-
-        # Check if point is inside the tetrahedron
-        return d1 >= 0 and d2 >= 0 and d3 >= 0 and (d1 + d2 + d3) <= 1
-
-    else:
-        raise ValueError("Unsupported cell geometry. Only 2D triangles and 3D tetrahedra are supported.")
+    # Use Delaunay triangulation to check if point is inside the convex hull of the cell
+    try:
+        hull = Delaunay(cell_geometry)
+        return hull.find_simplex(point) >= 0
+    except Exception as e:
+        raise ValueError(f"Unsupported geometry or degenerate cell: {e}")
 
 def is_point_inside_mesh(point, mesh):
     """
@@ -90,7 +60,7 @@ def is_point_inside_mesh(point, mesh):
     for cell_index in colliding_cells.links(0):
         # Get the coordinates of the cell's vertices
         cell_geometry = mesh.geometry.x[mesh.topology.connectivity(mesh.topology.dim, 0).links(cell_index)]
-        if is_point_inside_cell_hardcoded(cell_geometry, point):
+        if is_point_inside_cell(cell_geometry, point):
             return True, cell_index
 
     return False, -1

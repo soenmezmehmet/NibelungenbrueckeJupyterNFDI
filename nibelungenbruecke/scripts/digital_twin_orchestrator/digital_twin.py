@@ -181,43 +181,8 @@ class DigitalTwin:
                     
                 model_parameters = self.cache_object.cache_model["generation_models_list"][0]["model_parameters"]
                 dt_params_path = self.cache_object.cache_model["generation_models_list"][0]["digital_twin_parameters_path"]
-                """
+                                
                 module = importlib.import_module(i["type"])
-                """
-# =============================================================================
-#                 try:
-#                     # Try importing without changing path
-#                     module = importlib.import_module(i["type"])
-#                 
-#                 except ModuleNotFoundError:
-#                     try:
-#                         base_dir = Path(__file__).parent.resolve()  # folder where this script lives
-#                         if str(base_dir) not in sys.path:
-#                             sys.path.insert(0, str(base_dir))
-# 
-#                         modules = []
-#                         for item in os.listdir(base_dir):
-#                             item_path = os.path.join(base_dir, item)
-#                             # Check if it's a Python file (module) or a package folder
-#                             if item.endswith('.py'):
-#                                 modules.append(item[:-3])  # strip .py extension
-#                             elif os.path.isdir(item_path) and '__init__.py' in os.listdir(item_path):
-#                                 modules.append(item)
-#                         
-#                         
-#                         module = importlib.import_module(i["type"])
-# 
-#                 
-#                     except Exception as e:
-#                         # Shows full error traceback from the second failure
-#                         raise ImportError(
-#                             f"Module '{i['type']}' could not be imported even after adjusting the path."
-#                         ) from e
-# =============================================================================
-                #%%                
-                module = importlib.import_module(i["type"])
-                #%%
-                
                 digital_twin_model = getattr(module, i["class"])(model_path, model_parameters, dt_params_path)
                 digital_twin_model.GenerateModel()
                 
@@ -250,6 +215,8 @@ class DigitalTwin:
         self.initial_model.fields_assignment(self.model_params)
         self.initial_model.solve(api_key)
         self.initial_model.fields_data_storer(self.model_to_run)
+
+        return self.initial_model
         
     def uploader(self):
         """
@@ -301,22 +268,24 @@ class DigitalTwin:
      
 #%%
 
-import random
-
-def generate_random_rho():
-    """
-    Generates a random parameters (currently only 'rho') value for vehicles passing through the bridge.
-    rho: between 5000 and 10000
-    """
-    params = dict()
-    random_value = random.randint(5000 // 50, 10000 // 50) * 50
-    params["rho"] =random_value
-    
-    return params
 
 if __name__ == "__main__":
     
     path = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json"
+
+
+    import random
+
+    def generate_random_rho():
+        """
+        Generates a random parameters (currently only 'rho') value for vehicles passing through the bridge.
+        rho: between 5000 and 10000
+        """
+        params = dict()
+        random_value = random.randint(5000 // 50, 10000 // 50) * 50
+        params["rho"] =random_value
+        
+        return params
     
     model_to_run = "Displacement_1"
     #dt = DigitalTwin(model_path, model_parameters, dt_path, model_to_run)

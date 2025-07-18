@@ -14,7 +14,7 @@ from nibelungenbruecke.scripts.data_generation.thermomechanical_nibelungenbrueck
 from nibelungenbruecke.scripts.utilities.loaders import load_sensors
 from nibelungenbruecke.scripts.utilities.offloaders import offload_sensors
 from nibelungenbruecke.scripts.digital_twin_orchestrator.base_model import BaseModel
-from nibelungenbruecke.scripts.data_generation.nibelungen_experiment import NibelungenExperiment
+from nibelungenbruecke.scripts.data_generation.thermal_experiment import ThermalExperiment
 from nibelungenbruecke.scripts.utilities.API_sensor_retrieval import API_Request, MetadataSaver, Translator
 
 
@@ -34,10 +34,15 @@ class ThermalModel(BaseModel):
             and model-specific parameters.
             dt_path (str): Path to the digital twin parameter file (JSON format).
         """
+        
+        #%%
+        #super().__init__(model_path, model_parameters["thermal_model_parameters"]["model_parameters"]["problem_parameters"],)
         super().__init__(model_path, model_parameters)
+        #%%
+        #super().__init__(model_path, model_parameters["thermal_model_parameters"],)
         
         self.dt_path = dt_path
-        self.vs_path = self.model_parameters["virtual_sensor_added_output_path"] ##TODO: !!
+        #self.vs_path = self.model_parameters["virtual_sensor_added_output_path"] ##TODO: !!
         
     def LoadGeometry(self):
         """
@@ -54,9 +59,13 @@ class ThermalModel(BaseModel):
         using the 'NibelungenExperiment' and `LinearElasticityNibelungenbrueckeDemonstrator`respectively.
         
         """
-        self.experiment = NibelungenExperiment(self.model_path, self.model_parameters)
+        self.experiment = ThermalExperiment(self.model_parameters["thermal_model_parameters"])
+        #self.problem = ThermoMechanicalNibelungenBrueckeProblem(
+        #    [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters, pv_path=self.model_parameters["paraview_output_path"])
+        
         self.problem = ThermoMechanicalNibelungenBrueckeProblem(
-            [self.GenerateData, self.PostAPIData, self.ParaviewProcess], self.experiment, self.experiment.parameters, pv_path=self.model_parameters["paraview_output_path"])
+            [self.GenerateData, self.PostAPIData], self.experiment, self.experiment.parameters)
+        
         
     def GenerateData(self, api_key):
         """
@@ -82,6 +91,14 @@ class ThermalModel(BaseModel):
         """
        Solves the model
        """
+        #self.problem.dynamic_solve()        ##TODO: change the name!
+        
+        #time = 0
+        #while time < 190:
+            # problem update_and_solve()
+        #    self.problem.solve()
+        #    time += 1
+        #    tqdm.write(f"Progress: {time}/190")
         
         database = {
             "real_sensor_data": {},
@@ -129,7 +146,7 @@ class ThermalModel(BaseModel):
             #if i == 10:
             #    break
             #%%
-        # self.plot_all_sensors_together(database)
+        self.plot_all_sensors_together(database)
             
     def plot_all_sensors_together(self, database):
         real_data = database["real_sensor_data"]
@@ -326,43 +343,65 @@ if __name__ == "__main__":
      'MKP_meta_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_meta_output.json',
      'MKP_translated_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/MKP_translated.json',
      'virtual_sensor_added_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/sensors/virtual_sensor_added_translated.json',
-     'cache_path': '',
+     "secret_path" : "",
+     "API_request_start_time": "2023-08-11T08:00:00Z",
+     "API_request_end_time": "2023-09-11T08:01:00Z",
+     "API_request_time_step": "10min",
+     "cache_path": "",
      'paraview_output': True,
      'paraview_output_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview',
      #'material_parameters': {'E': 40000000000000.0, 'nu': 0.2, 'rho': 2350},
      'material_parameters': {},
      "secret_path" : "/home/msoenmez/Desktop/API_request_password",
-     'thermal_material_properties': {},
-     'tension_z': 0.0,
-     'mass': 50000.0,
-     'g': 9.81,
-     'initial_position': [0.0, 0.0, 0.0],
-     'speed': 1.0,
-     'length': 7.5,
-     'width': 2.5,
-     'height': 6.5,
-     'length_road': 95.0,
-     'width_road': 14.0,
-     'thickness_deck': 0.2,
-     'dt': 30.0,
-     'reference_temperature': 300,
-     'temperature_coefficient': 1e-05,
-     'temperature_alpha': 1e-05,
-     'temperature_difference': 5.0,
-     'reference_height': -2.5,
-     'boundary_conditions': {'bc1': {'model': 'clamped_edge',
-       'side_coord_1': 0.0,
-       'coord_1': 2,
-       'side_coord_2': 0.0,
-       'coord_2': 1},
-      'bc2': {'model': 'clamped_edge',
-       'side_coord_1': 95.185,
-       'coord_1': 2,
-       'side_coord_2': 0.0,
-       'coord_2': 1}}}
-    
+     'thermal_model_parameters': {
+        "name": "Nibelungenbrücke thermal",
+        "experiments": ["TestSeries_1"],
+        "input_sensors_path": "./input/sensors/sensors_temperature_probeye_input.json",
+        "output_sensors_path": "./input/sensors/sensors_temperature_probeye_output.json",
+        "problem_parameters": ["sigma_u", "sigma_n", "sigma_s", "sigma_o"], 
+        "parameter_key_paths": [[],[],[],[]],
+        "model_type": "embedded_for_noise",
+        "model_parameters": {
+            "model_name": "temperature",
+            "initial_condition_steps": 100,
+            "burn_in_steps": 300,
+            "experiment_parameters":{ 
+                "dim": 2  
+            },
+            "problem_parameters": {
+                "air_temperature": 293.0,
+                "inner_temperature": 293.0,
+                "initial_temperature": 293.0,
+                "heat_capacity": 870.0,
+                "dt": 600.0,
+                "theta": 1.0,
+                "density": 2400.0,
+                "conductivity": 2.5,
+                "diffusivity": 1.0E-6,
+                "sensor_location_u": -4.3,
+                "sensor_location_s": -2.2,
+                "sensor_location_n": -3.56,
+                "sensor_location_o": -0.17,
+                "convection": False,
+                "natural_convection_coefficient": 10.0,
+                "wind_forced_convection": False,
+                "wind_forced_convection_parameter_constant": 1.0,
+                "wind_speed": 5.0,
+                "shortwave_radiation": True,
+                "shortwave_radiation_constant": 1.0,
+                "shortwave_irradiation": 0.0,
+                "calculate_shortwave_irradiation": False,
+                "top_tag": 9,
+                "bottom_tag": 8,
+                "end_tag": 7,
+                "plot_pv": False
+            },
+            "sensor_metadata": "./input/sensors/sensors_temperature.json"
+        }}
+    }
     dt_path = '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_parameters.json'
     
     
     dm = ThermalModel(model_path, model_parameters, dt_path)
-    dm.solve()
+    api_key = input("Enter api key:" )
+    dm.solve(api_key)
