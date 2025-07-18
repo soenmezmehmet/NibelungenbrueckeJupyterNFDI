@@ -18,5 +18,7 @@ dependencies:
   - scipy
   - git
   - pip
+  - ipykernel
+  - jupyterlab
 pip:
   - git+https://github.com/BAMresearch/FenicsXConcrete
