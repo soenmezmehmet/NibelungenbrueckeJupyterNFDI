@@ -1,9 +1,8 @@
 FROM quay.io/jupyter/base-notebook:notebook-7.4.3
 
-# Copy all files (including environment.yml) into the home directory
 COPY . ${HOME}
-
 USER root
+RUN chown -R ${NB_UID} ${HOME}
 
 # Install system dependencies required by dolfinx/gmsh/pyvista GUI
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,14 +17,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libx11-6 \
     libxrandr2 \
     build-essential \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Ensure notebook user owns the home directory
-RUN chown -R ${NB_UID} ${HOME}
+
 USER ${NB_UID}
 
-# Create conda environment from environment.yml
-RUN mamba env create -f .binder/environment.yml && \
+RUN mamba env create -f binder/environment.yml && \
     conda clean --all -f -y && \
     echo "conda activate fenicsx-env" >> ~/.bashrc
 
@@ -33,7 +32,7 @@ RUN mamba env create -f .binder/environment.yml && \
 ENV CONDA_DEFAULT_ENV=fenicsx-env
 ENV PATH=/opt/conda/envs/fenicsx-env/bin:$PATH
 
-# Install ipykernel and register environment in Jupyter
-RUN pip install ipykernel && \
-    conda run -n fenicsx-env python -m ipykernel install --user \
-    --name=fenicsx-env --display-name "Python (fenicsx-env)"
+# Ensure Jupyter picks up correct Python/kernel
+RUN pip install ipykernel
+RUN conda run -n fenicsx-env python -m ipykernel install --user --name=fenicsx-env --display-name "Python (fenicsx-env)"
+
