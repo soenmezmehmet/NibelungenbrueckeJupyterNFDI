@@ -26,8 +26,8 @@
         "type": "thermal_model",
         "class": "ThermalModel",
         "parameters": {
-            "rho": 2200,
-            "E": 300000000000,
+            "rho": 2800,
+            "E": 210000000000,
             "nu": 0.28
         },
         "path": "transientthermal.json"

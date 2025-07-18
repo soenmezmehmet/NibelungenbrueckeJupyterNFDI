@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libx11-6 \
     libxrandr2 \
     build-essential \
-    build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
