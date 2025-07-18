@@ -4,18 +4,6 @@ channels:
 dependencies:
   - python=3.10
   - fenics-dolfinx=0.6.0
-  - numpy
-  - mpich
-  - pyvista[all]
-  - pytest
-  - gmsh
-  - pint
-  - jsonschema
-  - pandas
-  - pyproj
-  - tqdm
-  - pvlib
-  - scipy
   - git
   - pip
 pip:
