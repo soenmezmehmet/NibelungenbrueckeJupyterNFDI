@@ -21,7 +21,7 @@ class ThermoMechanicalNibelungenBrueckeProblem(MaterialProblem):
 
     def __init__(
         self,
-        callbacks: None,
+        #callbacks: None,
         experiment: Experiment,
         parameters: dict[str, pint.Quantity],
         pv_name: str = "pv_output_full",
@@ -35,7 +35,7 @@ class ThermoMechanicalNibelungenBrueckeProblem(MaterialProblem):
             pv_name (str, optional): The name of the PV output. Defaults to "pv_output_full".
             pv_path (str, optional): The path to the PV data. Defaults to None.
         """
-        self.callbacks = callbacks
+        #self.callbacks = callbacks
         super().__init__(experiment, parameters, pv_name, pv_path)
         if self.p["shortwave_radiation"]:
             self.initialize_incidence_data()

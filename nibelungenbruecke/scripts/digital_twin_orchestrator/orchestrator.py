@@ -51,7 +51,7 @@ class Orchestrator:
         """
         return DigitalTwin(self.model_parameters_path, self.model_to_run)
         
-    def predict_dt(self, digital_twin, input_value, model_to_run, api_key):   
+    def predict_dt(self, digital_twin, input_value, model_to_run, api_key):   ##TODO: Input parameters to be deleted!!
         """
         Runs "prediction" method of specified digital twin object.
         
@@ -100,7 +100,7 @@ class Orchestrator:
         
         return {'model_parameter_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json',
                 'parameters': generate_random_parameters(),
-                'thermal_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/pv_output_full.h5',
+                'thermal_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/Nibelungenbrücke_thermal.h5',
                 'displacement_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/displacements.h5',
                         }
 

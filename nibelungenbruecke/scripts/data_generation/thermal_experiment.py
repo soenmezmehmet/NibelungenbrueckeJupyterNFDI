@@ -22,6 +22,8 @@ class ThermalExperiment(Experiment):
         params = ThermalExperiment.unitize_parameters(parameters["model_parameters"]["problem_parameters"],
             ThermalExperiment.pint_default_units()
         )
+        
+        
         super().__init__(params)
 
         #%%
@@ -74,7 +76,9 @@ class ThermalExperiment(Experiment):
             dict: Dictionary with a working set of the required parameter.
         """
         setup_parameters = {}
-        setup_parameters["geometry"] = "box" * ureg("")
+        setup_parameters["geometry"] = "gmsh" * ureg("")
+        setup_parameters["mesh_path"] = "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/models/mesh_3d 1.msh" * ureg("")
+        #setup_parameters["geometry"] = "box" * ureg("")
         setup_parameters["length"] = 1 * ureg("m")
         setup_parameters["height"] = 0.3 * ureg("m")
         setup_parameters["width"] = 0.3 * ureg("m")
