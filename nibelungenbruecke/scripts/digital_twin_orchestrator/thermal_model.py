@@ -143,8 +143,8 @@ class ThermalModel(BaseModel):
                 
             #%%
          
-            if i == 10:
-                break
+            #if i == 10:
+            #    break
             #%%
         self.plot_all_sensors_together(database)
             

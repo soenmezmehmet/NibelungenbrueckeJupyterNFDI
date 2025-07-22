@@ -2,6 +2,7 @@ import json
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 from nibelungenbruecke.scripts.digital_twin_orchestrator.digital_twin import DigitalTwin
 from nibelungenbruecke.scripts.utilities.mesh_point_detector import query_point
@@ -103,8 +104,10 @@ class Orchestrator:
         return {'model_parameter_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/input/settings/digital_twin_default_parameters.json',
                 'parameters': generate_random_parameters(),
                 'thermal_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/Nibelungenbrücke_thermal.h5',
+                'thermal_xmdf_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/Nibelungenbrücke_thermal.xmdf',
                 'displacement_h5py_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/displacements.h5',
-                        }
+                'displacement_xmdf_path': '../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview/displacements.xmdf',
+                }
 
     def compare(self, output, input_value):
         self.updated = (output == 2 * input_value)
@@ -112,24 +115,45 @@ class Orchestrator:
     def set_api_key(self, key):
         self.api_key = key
 
-    def load(self, simulation_parameters):      ##this method should be checking if the virtuals sensor are in the domain of the mesh!!! Wrong implementation
+    def load(self, simulation_parameters):
         """
-        Loads and validates simulation parameters before running.
-        Useful for checking correctness before execution.
+        Validates simulation parameters by checking if virtual sensor positions lie within the mesh domain.
+
+        Args:
+            simulation_parameters (dict): The simulation parameters including virtual sensor positions.
+
+        Raises:
+            ValueError: If any virtual sensor lies outside the mesh domain.
         """
-        required_keys = ['model', 'start_time', 'end_time']     ##TODO: 
-        missing = [key for key in required_keys if key not in simulation_parameters]
-        if missing:
-            raise ValueError(f"Missing required simulation parameters: {missing}")
         
-        self.simulation_parameters = simulation_parameters
-        self.model_to_run = simulation_parameters['model']
-        self.digital_twin_model = self._digital_twin_initializer()
-        
-        print("Simulation parameters : \n")
-        print(simulation_parameters, "\n")
+        model = simulation_parameters.get('model')
+        if model == 'TransientThermal_1':
+            path = self.default_parameters['thermal_h5py_path']
+        elif model == 'displacement_1':
+            path = self.default_parameters['displacement_h5py_path']
+        else:
+            raise ValueError(f"Unsupported model type: {model}")
+
+        with h5py.File(path, 'r') as f:
+            geometry = f['/Mesh/mesh/geometry'][:]
+
+        for sensor in simulation_parameters.get('virtual_sensor_positions', []):
+            coords = np.array([sensor['x'], sensor['y'], sensor['z']])
+
+            distances = np.linalg.norm(geometry - coords, axis=1)
+            min_dist = np.min(distances)
 
 
+            threshold = 1.29  ##TODO: Maximum element size is 1.283 m. Outer virtual sensor coordinates smaller than threshold considered in the domain!!
+
+            if min_dist > threshold:
+                raise ValueError(
+                    f"Virtual sensor '{sensor['name']}' at {coords.tolist()} "
+                    f"is outside the mesh domain (nearest node distance: {min_dist:.6f} m)."
+                )
+
+        print("All virtual sensors are within the mesh domain.")
+       
 
     def run(self, simulation_parameters=None):
         """
@@ -191,7 +215,6 @@ class Orchestrator:
                 print(f"\nSensor '{name}' -> nearest node index: {nearest_node_idx}")
                 print(f"Nearest node coordinates: {nearest_node_coord}")
     
-                # Collect time series data
                 data_over_time = {}
                 for time_str in data_group.keys():
                     time = int(time_str)
@@ -213,7 +236,28 @@ class Orchestrator:
         
         for sensor_name, info in self.plot_virtual_sensors.items():
             data = info['data']
-            times = list(data.keys())
+            
+            #%%
+            start_time_str = self.simulation_parameters['start_time']
+            time_step_str = self.simulation_parameters['time_step']
+            
+            start_time = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+    
+            unit = time_step_str[-3:]
+            value = int(time_step_str[:-3])
+            if "min" in unit:
+                delta = timedelta(minutes=value)
+            elif "hou" in unit:
+                delta = timedelta(hours=value)
+            elif "day" in unit:
+                delta = timedelta(days=value)
+            else:
+                raise ValueError("Unsupported time step format.")
+            
+            times = [start_time + i * delta for i in range(len(data))]
+            
+            #%%
+            
             values = list(data.values())
     
             plt.figure(figsize=(8, 4))
@@ -230,84 +274,35 @@ class Orchestrator:
             plt.grid(True)
             plt.tight_layout()
             plt.show()
-
-#%%
-
-# =============================================================================
-#     def plot_results_at_virtual_sensors(self):
-#         virtual_sensors = {}
-#     
-#         # Determine model and HDF5 path
-#         if self.simulation_parameters['model'] == 'TransientThermal_1':
-#             model_typ = "thermal"
-#             path = self.default_parameters['thermal_h5py_path']
-#         elif self.simulation_parameters['model'] == 'displacement_1':
-#             model_typ = "displacement"
-#             path = self.default_parameters['displacement']
-#     
-#         with h5py.File(path, 'r') as f:
-#             geometry = f['/Mesh/mesh/geometry'][:]
-#             data_group = f['/Function/temperature'] if model_typ == "thermal" else f['/Function/displacement']
-#     
-#             for sensor in self.simulation_parameters['virtual_sensor_positions']:
-#                 name = sensor['name']
-#                 coords = np.array([sensor['x'], sensor['y'], sensor['z']])
-#     
-#                 projected = query_point(coords, self.prediction.problem.mesh)[0]
-#                 distances = np.linalg.norm(geometry - projected, axis=1)
-#                 nearest_node_idx = np.argmin(distances)
-#                 nearest_node_coord = geometry[nearest_node_idx]
-#     
-#                 print(f"\nSensor '{name}' -> nearest node index: {nearest_node_idx}")
-#                 print(f"Nearest node coordinates: {nearest_node_coord}")
-#     
-#                 # Collect time series data
-#                 data_over_time = {}
-#                 for time_str in data_group.keys():
-#                     time = int(time_str)
-#                     value = data_group[time_str][nearest_node_idx]
-#                     if model_typ == "displacement":
-#                         value = np.linalg.norm(value)  # Optional: Use vector magnitude
-#                     else:
-#                         value = value[0]  # scalar temperature
-#                     data_over_time[time] = value
-#     
-#                 # Save to dict
-#                 virtual_sensors[name] = {
-#                     'coordinates': nearest_node_coord.tolist(),
-#                     'data': dict(sorted(data_over_time.items()))
-#                 }
-#     
-#         # Plot results
-#         for sensor_name, info in virtual_sensors.items():
-#             data = info['data']
-#             times = list(data.keys())
-#             values = list(data.values())
-#     
-#             plt.figure(figsize=(8, 4))
-#             plt.plot(times, values, marker='o')
-#     
-#             if model_typ == "thermal":
-#                 plt.title(f"Temperature at Virtual Sensor: {sensor_name}")
-#                 plt.ylabel("Temperature (°C)")
-#             elif model_typ == "displacement":
-#                 plt.title(f"Displacement Magnitude at Virtual Sensor: {sensor_name}")
-#                 plt.ylabel("Displacement (m)")  # or mm, depending on units
-#     
-#             plt.xlabel("Time")
-#             plt.grid(True)
-#             plt.tight_layout()
-#             plt.show()
-#             
-#             
-#     def plot_results_at_real_sensors(self):
-#         print("Virtual sensors to be plotted with the corresponding real sensor")
-#         pass
-# =============================================================================
-
- #%%                           
             
+            #%%
+            self.plot_full_field_response(self.simulation_parameters['full_field_results'])
+            
+            #%%
+            
+    ##TODO: 
         
+    def plot_full_field_response(self, full_field=True):
+        '''
+        currently returns the simulation result paths
+        '''
+        if full_field:
+            model = self.simulation_parameters.get('model')
+            
+            if 'TransientThermal' in model:
+                h5py_path = self.default_parameters['thermal_h5py_path']
+                xmdf_path = self.default_parameters['thermal_xmdf_path']
+                
+            elif 'displacement' in model:
+                h5py_path = self.default_parameters['displacement_h5py_path']
+                xmdf_path = self.default_parameters['displacement_xmdf_path']
+                
+            print(f"Path to full-field results:")
+            print(f"{model} -> h5py_path: {h5py_path}")
+            print(f"{model} -> xmdf_path: {xmdf_path}")
+                    
+                
+       #%%
 
 if __name__ == "__main__":
     
