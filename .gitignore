@@ -165,6 +165,7 @@ use_cases/nibelungenbruecke_demonstrator_self_weight/output/*
 
 ### fenicsxconcrete_demonstrator test
 tests/test_orchestrator/test_orchestrator.py
+interface_NB_DT.ipynb
 
 ##
 environment_backup.yml

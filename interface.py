@@ -56,7 +56,7 @@ new_parameters = deepcopy(simulation_parameters)
 new_parameters['parameter_update'] = {'rho': 2800, 'E': 290000000000}
 
 orchestrator.load(new_parameters)
-#result2 = orchestrator.run()
+result2 = orchestrator.run()
 orchestrator.plot_virtual_sensor_data()
 
 
