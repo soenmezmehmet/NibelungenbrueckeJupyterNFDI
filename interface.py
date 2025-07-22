@@ -1,17 +1,22 @@
 import os
-print(os.getcwd())
-
-
-import os
 import sys
 
+# Save the original working directory
 original_cwd = os.getcwd()
-root_dir = os.getcwd()
+
+# Define project root and orchestrator directory
+root_dir = original_cwd
 orchestrator_dir = os.path.join(root_dir, 'nibelungenbruecke', 'scripts', 'digital_twin_orchestrator')
+
+# Change to orchestrator directory
 os.chdir(orchestrator_dir)
+
+# Add root to sys.path
 sys.path.insert(0, root_dir)
 
+# Import Orchestrator
 from nibelungenbruecke.scripts.digital_twin_orchestrator.orchestrator import Orchestrator
+
 
 simulation_parameters = {
     'simulation_name': 'TestSimulation',
@@ -19,45 +24,69 @@ simulation_parameters = {
     'start_time': '2023-08-11T08:00:00Z',
     'end_time': '2023-09-11T08:01:00Z',
     'time_step': '10min',
+    'parameter_update': {'rho': 2800, 'E': 300000000000},       ##TODO: !!
     'virtual_sensor_positions': [
         {'x': 0.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor1'},
         {'x': 1.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'},
         {'x': 1.78, 'y': 0.0, 'z': 26.91, 'name': 'Sensor3'},
         {'x': -1.83, 'y': 0.0, 'z': 0.0, 'name': 'Sensor4'}
-        # Note: the real sensor positions are added automatically by the interface, so you don't need to specify them here.
     ],
-    'full_field_results': False, # Set to True if you want full field results, the simulation will take longer and the results will be larger.
-    'uncertainty_quantification': False, # Set to True if you want uncertainty quantification, the simulation will take longer and the results will be larger.
+    'full_field_results': False,
+    'uncertainty_quantification': False
 }
 
 orchestrator = Orchestrator(simulation_parameters)
 
-key=input("\nEnter the code to connect API: ").strip()
+
+
+key = input("Enter the code to connect API: ").strip()
+if not key:
+    raise ValueError("API key is required.")
 orchestrator.set_api_key(key)
 
-orchestrator.load(simulation_parameters) # Here we first load and then run, so that we can check the inputs before running the simulation and throw an error if something is wrong.
-results = orchestrator.run() # The plotting should be separated from the run, so that we can run the simulation without plotting if we want to.
+orchestrator.load(simulation_parameters)
+results = orchestrator.run()
+
+orchestrator.plot_virtual_sensor_data()
 
 
-orchestrator.plot_results_at_virtual_sensors()
+from copy import deepcopy
 
-# Update parameters and reload
-new_parameters = simulation_parameters.copy()
-new_parameters['parameter_update'] = {'rho': 2900, 'E': 290000000000}
+new_parameters = deepcopy(simulation_parameters)
+new_parameters['parameter_update'] = {'rho': 2800, 'E': 290000000000}
 
 orchestrator.load(new_parameters)
-result2 = orchestrator.run()
-print("Second run result:", result2)
-
-virtual_sensor_positions = [
-        {'x': 1.78, 'y': 0.0, 'z': 26.91, 'name': 'Sensor1'},
-        {'x': -1.83, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
-        # Note: the real sensor positions are added automatcally by the interface, so you don't need to specify them here.
-    ]
-
-orchestrator.simulation_parameters["virtual_sensor_positions"] = virtual_sensor_positions
+#result2 = orchestrator.run()
+orchestrator.plot_virtual_sensor_data()
 
 
-orchestrator.plot_results_at_virtual_sensors()
 
-print(os.getcwd())
+
+new_parameters = deepcopy(orchestrator.simulation_parameters)
+new_parameters['virtual_sensor_positions'] = [
+    {'x': 1.78, 'y': 0.0, 'z': 26.91, 'name': 'Sensor1'},
+    {'x': -1.83, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
+]
+
+orchestrator.load(new_parameters)
+
+result3 = orchestrator.run()
+print("Third run result:", result3)
+orchestrator.plot_virtual_sensor_data()
+
+
+new_parameters['parameter_update'] = {'rho': 3000, 'E': 290000000000}
+result4 = orchestrator.run(new_parameters)
+print("Fourth run result:", result4)
+orchestrator.plot_virtual_sensor_data()
+
+
+result5 = orchestrator.run(new_parameters)
+print("Fifth run result:", result5)
+orchestrator.plot_virtual_sensor_data()
+
+os.chdir(original_cwd)
+print("Working directory restored to:", original_cwd)
+
+
+

@@ -107,8 +107,8 @@ class DigitalTwin:
             self._update_cached_model(self._loaded_params, updated_params)  # updates model parameters w.r.t. new input data!
             self._run_model(api_key)
         else:
-            print()
-            return ("Same model with the same parameters!!")
+            print("Same model with the same parameters!!")
+            return None
             
         return self.initial_model
     

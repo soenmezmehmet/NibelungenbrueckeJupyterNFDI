@@ -40,6 +40,8 @@ class Orchestrator:
         self.model_parameters_path = self.default_parameters['model_parameter_path']
         
         self.digital_twin_model = self._digital_twin_initializer()
+        self.plot_virtual_sensors = {}
+        self.plot_model_typ = ""
         
     def _digital_twin_initializer(self):
         """
@@ -149,19 +151,29 @@ class Orchestrator:
         else:
             self.simulation_parameters = simulation_parameters
           
-        self.prediction = self.predict_dt(self.digital_twin_model, self.default_parameters['parameters'], simulation_parameters['model'], self.api_key)
+        self.prediction = self.predict_dt(self.digital_twin_model, self.simulation_parameters['parameter_update'], self.simulation_parameters['model'], self.api_key)
+        
+        if not self.prediction:
+            pass
+        
+        else:
+            self.plot_virtual_sensors, self.plot_model_typ = self.extract_virtual_sensor_data()
         
 
-    def plot_results_at_virtual_sensors(self):
+    def extract_virtual_sensor_data(self):
+        print("\n--- Extracting virtual sensor data ---")
         virtual_sensors = {}
     
         # Determine model and HDF5 path
-        if self.simulation_parameters['model'] == 'TransientThermal_1':
+        model = self.simulation_parameters.get('model')
+        if model == 'TransientThermal_1':
             model_typ = "thermal"
             path = self.default_parameters['thermal_h5py_path']
-        elif self.simulation_parameters['model'] == 'displacement_1':
+        elif model == 'displacement_1':
             model_typ = "displacement"
             path = self.default_parameters['displacement']
+        else:
+            raise ValueError(f"Unsupported model type: {model}")
     
         with h5py.File(path, 'r') as f:
             geometry = f['/Mesh/mesh/geometry'][:]
@@ -185,19 +197,21 @@ class Orchestrator:
                     time = int(time_str)
                     value = data_group[time_str][nearest_node_idx]
                     if model_typ == "displacement":
-                        value = np.linalg.norm(value)  # Optional: Use vector magnitude
+                        value = np.linalg.norm(value)  # vector magnitude
                     else:
                         value = value[0]  # scalar temperature
                     data_over_time[time] = value
     
-                # Save to dict
                 virtual_sensors[name] = {
                     'coordinates': nearest_node_coord.tolist(),
                     'data': dict(sorted(data_over_time.items()))
                 }
     
-        # Plot results
-        for sensor_name, info in virtual_sensors.items():
+        return virtual_sensors, model_typ
+        
+    def plot_virtual_sensor_data(self):
+        
+        for sensor_name, info in self.plot_virtual_sensors.items():
             data = info['data']
             times = list(data.keys())
             values = list(data.values())
@@ -205,35 +219,105 @@ class Orchestrator:
             plt.figure(figsize=(8, 4))
             plt.plot(times, values, marker='o')
     
-            if model_typ == "thermal":
+            if self.plot_model_typ == "thermal":
                 plt.title(f"Temperature at Virtual Sensor: {sensor_name}")
                 plt.ylabel("Temperature (°C)")
-            elif model_typ == "displacement":
+            elif self.plot_model_typ == "displacement":
                 plt.title(f"Displacement Magnitude at Virtual Sensor: {sensor_name}")
-                plt.ylabel("Displacement (m)")  # or mm, depending on units
+                plt.ylabel("Displacement (m)")
     
             plt.xlabel("Time")
             plt.grid(True)
             plt.tight_layout()
             plt.show()
-            
-            
-    def plot_results_at_real_sensors(self):
-        print("Virtual sensors to be plotted with the corresponding real sensor")
-        pass
 
-                            
+#%%
+
+# =============================================================================
+#     def plot_results_at_virtual_sensors(self):
+#         virtual_sensors = {}
+#     
+#         # Determine model and HDF5 path
+#         if self.simulation_parameters['model'] == 'TransientThermal_1':
+#             model_typ = "thermal"
+#             path = self.default_parameters['thermal_h5py_path']
+#         elif self.simulation_parameters['model'] == 'displacement_1':
+#             model_typ = "displacement"
+#             path = self.default_parameters['displacement']
+#     
+#         with h5py.File(path, 'r') as f:
+#             geometry = f['/Mesh/mesh/geometry'][:]
+#             data_group = f['/Function/temperature'] if model_typ == "thermal" else f['/Function/displacement']
+#     
+#             for sensor in self.simulation_parameters['virtual_sensor_positions']:
+#                 name = sensor['name']
+#                 coords = np.array([sensor['x'], sensor['y'], sensor['z']])
+#     
+#                 projected = query_point(coords, self.prediction.problem.mesh)[0]
+#                 distances = np.linalg.norm(geometry - projected, axis=1)
+#                 nearest_node_idx = np.argmin(distances)
+#                 nearest_node_coord = geometry[nearest_node_idx]
+#     
+#                 print(f"\nSensor '{name}' -> nearest node index: {nearest_node_idx}")
+#                 print(f"Nearest node coordinates: {nearest_node_coord}")
+#     
+#                 # Collect time series data
+#                 data_over_time = {}
+#                 for time_str in data_group.keys():
+#                     time = int(time_str)
+#                     value = data_group[time_str][nearest_node_idx]
+#                     if model_typ == "displacement":
+#                         value = np.linalg.norm(value)  # Optional: Use vector magnitude
+#                     else:
+#                         value = value[0]  # scalar temperature
+#                     data_over_time[time] = value
+#     
+#                 # Save to dict
+#                 virtual_sensors[name] = {
+#                     'coordinates': nearest_node_coord.tolist(),
+#                     'data': dict(sorted(data_over_time.items()))
+#                 }
+#     
+#         # Plot results
+#         for sensor_name, info in virtual_sensors.items():
+#             data = info['data']
+#             times = list(data.keys())
+#             values = list(data.values())
+#     
+#             plt.figure(figsize=(8, 4))
+#             plt.plot(times, values, marker='o')
+#     
+#             if model_typ == "thermal":
+#                 plt.title(f"Temperature at Virtual Sensor: {sensor_name}")
+#                 plt.ylabel("Temperature (°C)")
+#             elif model_typ == "displacement":
+#                 plt.title(f"Displacement Magnitude at Virtual Sensor: {sensor_name}")
+#                 plt.ylabel("Displacement (m)")  # or mm, depending on units
+#     
+#             plt.xlabel("Time")
+#             plt.grid(True)
+#             plt.tight_layout()
+#             plt.show()
+#             
+#             
+#     def plot_results_at_real_sensors(self):
+#         print("Virtual sensors to be plotted with the corresponding real sensor")
+#         pass
+# =============================================================================
+
+ #%%                           
             
         
 
 if __name__ == "__main__":
     
-    simulation_parameters = {
+    simulation_parameters = {       ##Throw an error checking UQ!!
         'simulation_name': 'TestSimulation',
         'model': 'TransientThermal_1',
         'start_time': '2023-08-11T08:00:00Z',
         'end_time': '2023-12-11T09:01:00Z',
         'time_step': '10min',
+        'parameter_update': {'rho': 2800, 'E': 300000000000},       ##TODO: !!
         'virtual_sensor_positions': [
             {'x': 0.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor1'},
             {'x': 1.0, 'y': 0.0, 'z': 0.0, 'name': 'Sensor2'}
@@ -249,7 +333,7 @@ if __name__ == "__main__":
     orchestrator.set_api_key(key)
     orchestrator.run()
     
-    orchestrator.plot_results_at_virtual_sensors()
+    orchestrator.plot_virtual_sensor_data()
 
     ## 
 
@@ -262,8 +346,8 @@ if __name__ == "__main__":
     orchestrator.simulation_parameters["virtual_sensor_positions"] = virtual_sensor_positions
 
 
-    orchestrator.plot_results_at_virtual_sensors()
+    orchestrator.plot_virtual_sensor_data()
 
     
 
-    orchestrator.run(simulation_parameters)
+    #orchestrator.run(simulation_parameters)

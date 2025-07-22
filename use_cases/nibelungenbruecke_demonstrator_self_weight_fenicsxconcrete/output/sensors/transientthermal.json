@@ -27,8 +27,8 @@
                 "paraview_output_name": "Nibelungenbr\u00fccke_thermal",
                 "paraview_output_path": "../../../use_cases/nibelungenbruecke_demonstrator_self_weight_fenicsxconcrete/output/paraview",
                 "material_parameters": {
-                    "rho": 2800,
-                    "E": 210000000000,
+                    "rho": 3000,
+                    "E": 290000000000,
                     "nu": 0.28
                 },
                 "thermal_model_parameters": {
