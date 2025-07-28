@@ -400,5 +400,5 @@ if __name__ == "__main__":
     
     
     dm = ThermalModel(model_path, model_parameters, dt_path)
-    api_key = "nv8QrKftsTHj93hPM4-BiaJJYbWU7blfUGz89KdkuEbpAzFuHX1Rmg=="
+    api_key = ""
     dm.solve(api_key)
