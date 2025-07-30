@@ -405,7 +405,7 @@ if __name__ == "__main__":
     orchestrator =  Orchestrator(simulation_parameters)
     #key = input("\nEnter the code to connect API: ").strip()
     #
-    key = "nv8QrKftsTHj93hPM4-BiaJJYbWU7blfUGz89KdkuEbpAzFuHX1Rmg=="
+    key = ""
     orchestrator.set_api_key(key)
     orchestrator.run(simulation_parameters)
     
